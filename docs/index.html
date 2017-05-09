@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+
 <script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
 <style type="text/css">
 
 /* On mouse hover, lighten state color */
@@ -27,22 +30,53 @@ div.tooltip {
 /* Legend Font Style */
 body {
     font: 11px sans-serif;
+    background: #114357; /* fallback for old browsers */
+    background: -webkit-linear-gradient(to left, #D1E4FF, #FFD1D4); /* Chrome 10-25, Safari 5.1-6 */
+    background: linear-gradient(to left, #D1E4FF, #FFD1D4); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+    color:#2B282E;
+    text-align: center;
 }
+
+h1 {
+  font-size: 40px
+}
+
+a {
+  transition: color .4s;
+  color: #265C83;
+}
+
+a:link,
+a:visited { color: #265C83; }
+a:hover   { color: #10274C; }
+a:active  {
+  transition: color .3s;
+  color: #007BE6;
+}
+.link { text-decoration: none; }
         
 /* Legend Position Style */
 .legend {
     position:absolute;
-    left:800px;
-    top:350px;
+    left:50%;
+    margin-left:300px;
+    top:450px;
 }
 
 </style>
 </head>
 <body>
+
+<div align="center">
+
 <script type="text/javascript">
 
-/*  This visualization was made possible by modifying code provided by:
+/* 
 
+This visualization was made possible by modifying code from:
+http://bl.ocks.org/michellechandra/0b2ce4923dc9b5809922
+
+Which in turn was modified from:
 Scott Murray, Choropleth example from "Interactive Data Visualization for the Web" 
 https://github.com/alignedleft/d3-book/blob/master/chapter_12/05_choropleth.html   
         
@@ -68,10 +102,13 @@ var path = d3.geo.path()               // path generator that will convert GeoJS
 
         
 // Define linear scale for output
+var repColor = "rgb(125,0,16)"
+var demColor = "rgb(13,0,76)"
+var mixedColor = "rgb(75,0,73)"
 var color = d3.scale.linear()
-              .range(["rgb(213,222,217)","rgb(69,173,168)","rgb(84,36,55)","rgb(217,91,67)"]);
+              .range([mixedColor,demColor,repColor]);
 
-var legendText = ["Cities Lived", "States Lived", "States Visited", "Nada"];
+var legendText = ["Republican senator", "Democratic senator", "Both"];
 
 //Create SVG element and append map to the SVG
 var svg = d3.select("body")
@@ -86,8 +123,8 @@ var div = d3.select("body")
             .style("opacity", 0);
 
 // Load in my states data!
-d3.csv("stateslived.csv", function(data) {
-color.domain([0,1,2,3]); // setting the range of the input data
+d3.csv("states-by-party.csv", function(data) {
+color.domain([0,1,2]); // setting the range of the input data
 
 // Load GeoJSON data and merge with states data
 d3.json("us-states.json", function(json) {
@@ -99,7 +136,7 @@ for (var i = 0; i < data.length; i++) {
     var dataState = data[i].state;
 
     // Grab data value 
-    var dataValue = data[i].visited;
+    var dataValue = data[i].party;
 
     // Find the corresponding state inside the GeoJSON
     for (var j = 0; j < json.features.length; j++)  {
@@ -108,7 +145,7 @@ for (var i = 0; i < data.length; i++) {
         if (dataState == jsonState) {
 
         // Copy the data value into the JSON
-        json.features[j].properties.visited = dataValue; 
+        json.features[j].properties.party = dataValue; 
 
         // Stop looking through the JSON
         break;
@@ -122,12 +159,13 @@ svg.selectAll("path")
     .enter()
     .append("path")
     .attr("d", path)
+    .attr("party", function(d) { return d.properties.party } )
     .style("stroke", "#fff")
     .style("stroke-width", "1")
     .style("fill", function(d) {
 
     // Get data value
-    var value = d.properties.visited;
+    var value = d.properties.party;
 
     if (value) {
     //If value exists…
@@ -138,45 +176,6 @@ svg.selectAll("path")
     }
 });
 
-         
-// Map the cities I have lived in!
-d3.csv("cities-lived.csv", function(data) {
-
-svg.selectAll("circle")
-    .data(data)
-    .enter()
-    .append("circle")
-    .attr("cx", function(d) {
-        return projection([d.lon, d.lat])[0];
-    })
-    .attr("cy", function(d) {
-        return projection([d.lon, d.lat])[1];
-    })
-    .attr("r", function(d) {
-        return Math.sqrt(d.years) * 4;
-    })
-        .style("fill", "rgb(217,91,67)")    
-        .style("opacity", 0.85)    
-
-    // Modification of custom tooltip code provided by Malcolm Maclean, "D3 Tips and Tricks" 
-    // http://www.d3noob.org/2013/01/adding-tooltips-to-d3js-graph.html
-    .on("mouseover", function(d) {      
-        div.transition()        
-             .duration(200)      
-           .style("opacity", .9);      
-           div.text(d.place)
-           .style("left", (d3.event.pageX) + "px")     
-           .style("top", (d3.event.pageY - 28) + "px");    
-    })   
-
-    // fade out tooltip on mouse out               
-    .on("mouseout", function(d) {       
-        div.transition()        
-           .duration(500)      
-           .style("opacity", 0);   
-    });
-});  
-        
 // Modified Legend Code from Mike Bostock: http://bl.ocks.org/mbostock/3888852
 var legend = d3.select("body").append("svg")
                   .attr("class", "legend")
@@ -203,5 +202,47 @@ var legend = d3.select("body").append("svg")
 
 });
 </script>
+<script>
+function setColor(party, color) {
+    $( "path[party!='"+party+"']" ).css('fill',
+        function() { return color } );
+}
+function restoreColors() {
+    for(var idx=0; idx<3; ++idx) {
+        $( "path[party='" + idx + "']" ).css('fill',
+            function() { return color(idx) } );
+    }
+}
+
+$(document).ready(function(){
+    $( "a[id='repparty']" ).mouseover(function(){setColor(2, "rgb(213,222,217)")});
+});
+$(document).ready(function(){
+    $( "a[id='demparty']" ).mouseover(function(){setColor(1, "rgb(213,222,217)")});
+});
+$(document).ready(function(){
+    $( "a[name='party']" ).mouseout(function(){restoreColors()});
+});
+
+</script>
+
+<h1>Red Friends, Blue Friends.</h1>
+</div>
+
+<div align="center">
+<br/><br/><br/><br/>
+<h2>Influence other senators by influencing your friends in their state. Click the links below to find your Facebook friends with:</h2>
+<h1>
+<a id="repparty" name="party" href="https://www.facebook.com/search/109146809103536/residents/present/112083625475436/residents/present/109714185714936/residents/present/104039182964473/residents/present/105486989486087/residents/present/108325505857259/residents/present/108301835856691/residents/present/108337852519784/residents/present/112822538733611/residents/present/104083326294266/residents/present/104131666289619/residents/present/109306932420886/residents/present/108545005836236/residents/present/112825018731802/residents/present/105528489480786/residents/present/109176885767113/residents/present/106153826081984/residents/present/108083605879747/residents/present/104037882965264/residents/present/111689148842696/residents/present/103994709636969/residents/present/111957282154793/residents/present/104004246303834/residents/present/108296539194138/residents/present/108037302558105/residents/present/108603925831326/residents/present/105818976117390/residents/present/104024609634842/residents/present/104164412953145/residents/present/103118929728297/residents/present/105493439483468/residents/present/109983559020167/residents/present/113067432040067/residents/present/108635949160808/residents/present/109438335740656/residents/present/112283278784694/residents/present/union/me/friends/intersect">Republican Senators</a>
+&middot;
+<a id="demparty" name="party" href="https://www.facebook.com/search/110453875642908/residents/present/105643859470062/residents/present/109146809103536/residents/present/112083625475436/residents/present/113667228643818/residents/present/109714185714936/residents/present/105486989486087/residents/present/108325505857259/residents/present/108301835856691/residents/present/104131666289619/residents/present/109306932420886/residents/present/112825018731802/residents/present/105528489480786/residents/present/108295552526163/residents/present/109176885767113/residents/present/109564639069465/residents/present/106153826081984/residents/present/108131585873862/residents/present/107907135897622/residents/present/112386318775352/residents/present/111957282154793/residents/present/112750485405808/residents/present/108178019209812/residents/present/112439102104396/residents/present/104024609634842/residents/present/103118929728297/residents/present/112577505420980/residents/present/109706309047793/residents/present/109983559020167/residents/present/109564342404151/residents/present/union/me/friends/intersect">Democratic Senators</a>
+</h2>
+</div>
+
+<br/><br/><br/><br/>
+<div align="center">
+Made by <a href="http://www.arminsamii.com">Armin Samii</a> with help from <a href="https://propublica.github.io/congress-api-docs/">ProPublica Congress API</a> and <a href="http://bl.ocks.org/michellechandra/0b2ce4923dc9b5809922">Michelle Chandra's D3 Map</a>. Available open-source on <a href="https://github.com/artoonie/RedStatesBlueStates">github</a>.
+</div>
+
 </body>
 </html>
