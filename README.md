@@ -32,7 +32,7 @@ curl "https://api.propublica.org/congress/v1/115/senate/members.json" \
                 -H "X-API-Key: PROPUBLICA_API_KEY" > moc.json
 ```
 Then run `python generateUrls.py` to generate two URLs, one for Red Friends and one for Blue Friends.
-```
+
 
 ## Why only senators?
 I originally tried to use the Facebook Graph Search API to get the representatives and senators for all your friends, but Facebook privacy settings prevent apps from accessing information about your friends.
