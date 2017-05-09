@@ -1,10 +1,9 @@
 # Summary
-Generate a Facebook URL to search for friends in "Red States" or "Blue States."
+The links below will give you a list of your friends in "Red States" or "Blue States."
 
-Specifically, this searches for any friend in a state with at least one Senator in a given party.
+This searches for any friend in a state with at least one Senator in a given party.
 
 Use this to have a discussion with your friends about topics you care about, and ask them to voice their opinion to their members of congress.
-
 
 # Generated URLs
 You don't need to run this code to see a list of your Red Friends or Blue Friends, you just need to click the links below:
@@ -23,3 +22,6 @@ I originally tried to use the Facebook Graph Search API to get the representativ
 Generating a search URL for every district seems impossible, since congressional districts don't line up with searchable cities (and also because the search URL would contain every city in the US).
 The original project using the Facebook API is available here: https://github.com/artoonie/django-redblue
 If you have suggestions on getting this to work for reps as well, please let me know.
+
+
+Inspired by [Indivisible Berkeley](http://www.indivisibleberkeley.org). \#resist
