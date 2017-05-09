@@ -18,7 +18,18 @@ Blue Friends are from states: CA, CO, CT, DE, FL, HI, IL, IN, MA, MD, MI, MN, MO
 [Reddit user taniapdx](https://propublica.github.io/congress-api-docs/#lists-of-members) has created the only mapping of states-to-facebook-codes that I could find on the web, and I assume it was manually and painstakenly collected.
 This project was inspired by [Indivisible Berkeley](http://www.indivisibleberkeley.org). \#resist
 
-# Why only senators?
+# Technical Details
+## Running the code
+You need a [ProPublica API Key](https://www.propublica.org/datastore/api/propublica-congress-api) to replace `moc.json` with a full list of senators, and then running
+
+```bash
+curl "https://api.propublica.org/congress/v1/115/senate/members.json" \
+                -H "X-API-Key: PROPUBLICA_API_KEY" > moc.json
+
+Then run `python generateUrls.py` to generate two URLs, one for Red Friends and one for Blue Friends.
+```
+
+## Why only senators?
 I originally tried to use the Facebook Graph Search API to get the representatives and senators for all your friends, but Facebook privacy settings prevent apps from accessing information about your friends.
 Generating a search URL for every district seems impossible, since congressional districts don't line up with searchable cities (and also because the search URL would contain every city in the US).
 The original project using the Facebook API is available here: https://github.com/artoonie/django-redblue

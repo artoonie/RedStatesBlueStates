@@ -4,12 +4,18 @@ import json
 
 Democrat = "D"
 Republican = "R"
+def partyToText(whichParty):
+    if whichParty == Democrat:
+        return "Blue"
+    elif whichParty == Republican:
+        return "Red"
+    else:
+        assert False
 
 def loadStateToParty(whichParty):
     """ Returns a list of states with at least one senator in the Party.
         Generated via the ProPublica API:
-        curl "https://api.propublica.org/congress/v1/115/senate/members.json" \
-                -H "X-API-Key: PROPUBLICA_API_KEY" """
+         """
     with open('moc.json', 'rb') as dataFile:
         data = json.load(dataFile)
 
@@ -27,11 +33,7 @@ def loadStateToParty(whichParty):
         if member['party'] == whichParty:
             membersInParty.add(member['state'])
 
-    if whichParty == Democrat:
-        partyText = "Blue"
-    elif whichParty == Republican:
-        partyText = "Red"
-    else: assert False
+    partyText = partyToText(whichParty)
     print partyText + " Friends are from states: " + ', '.join(sorted(membersInParty))
     return membersInParty
 
@@ -50,10 +52,12 @@ def loadStateToFbCode():
 
 stateToFbCode = loadStateToFbCode()
 
-url = "https://www.facebook.com/search/"
-for state in loadStateToParty(Republican):
-    key = stateToFbCode[state]
-    url += key + "/residents/present/"
-url += "union/me/friends/intersect"
-
-print url
+for party in (Republican, Democrat):
+    url = "https://www.facebook.com/search/"
+    for state in loadStateToParty(party):
+        key = stateToFbCode[state]
+        url += key + "/residents/present/"
+    url += "union/me/friends/intersect"
+    print partyToText(party) + " Friends URL:"
+    print url
+    print
