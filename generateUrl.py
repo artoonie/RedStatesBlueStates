@@ -27,12 +27,12 @@ def loadStateToParty(whichParty):
         if member['party'] == whichParty:
             membersInParty.add(member['state'])
 
-    membersInParty.add('NE')
-    membersInParty.add('NV')
-    membersInParty.add('NH')
-    membersInParty.add('NJ')
-    membersInParty.add('NM')
-    membersInParty.add('NY')
+    if whichParty == Democrat:
+        partyText = "Blue"
+    elif whichParty == Republican:
+        partyText = "Red"
+    else: assert False
+    print partyText + " Friends are from states: " + ', '.join(sorted(membersInParty))
     return membersInParty
 
 def loadStateToFbCode():
