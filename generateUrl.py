@@ -60,7 +60,6 @@ for party in (Republican, Democrat):
 # Print URLs
 for party in stateToParty:
     url = "https://www.facebook.com/search/"
-    stateToParty[party] = loadStateToParty(party)
     for state in stateToParty[party]:
         key = stateData[state]['fbcode']
         url += key + "/residents/present/"
