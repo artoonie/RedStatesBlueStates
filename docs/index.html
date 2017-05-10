@@ -204,8 +204,9 @@ var legend = d3.select("body").append("svg")
 </script>
 <script>
 function setColor(party, color) {
-    $( "path[party!='"+party+"']" ).css('fill',
-        function() { return color } );
+    $( "path[party!='"+party+"']" ).css({
+        fill: color,
+        transition: "0.5s" });
 }
 function restoreColors() {
     for(var idx=0; idx<3; ++idx) {
@@ -215,13 +216,13 @@ function restoreColors() {
 }
 
 $(document).ready(function(){
-    $( "a[id='repparty']" ).mouseover(function(){setColor(2, "rgb(213,222,217)")});
+    $( "a[id='repparty']" ).mouseenter(function(){setColor(2, "rgb(213,222,217)")});
 });
 $(document).ready(function(){
-    $( "a[id='demparty']" ).mouseover(function(){setColor(1, "rgb(213,222,217)")});
+    $( "a[id='demparty']" ).mouseenter(function(){setColor(1, "rgb(213,222,217)")});
 });
 $(document).ready(function(){
-    $( "a[name='party']" ).mouseout(function(){restoreColors()});
+    $( "a[name='party']" ).mouseleave(function(){restoreColors()});
 });
 
 </script>
