@@ -1,9 +1,10 @@
 # Summary
-The links below will give you a list of your friends in "Red States" or "Blue States."
+A Django Application which gives you a list of your friends in "Red States" or "Blue States."
+You can also use it to generate your own lists - for example, friends who live in states whose senators could swing certain votes.
 
-This searches for any friend in a state with at least one Senator in a given party.
+Your friends' senators don't represent you, but you can ask your friends to contact their senators.
 
-Use this to have a discussion with your friends about topics you care about, and ask them to voice their opinion to their members of congress.
+View it live on [Heroku](https://redfriendsbluefriends.herokuapp.com).
 
 # Generated URLs
 You don't need to run this code to see a list of your Red Friends or Blue Friends, you just need to click the links below:
@@ -25,13 +26,11 @@ Blue Friends are from states: CA, CO, CT, DE, FL, HI, IL, IN, MA, MD, MI, MN, MO
 
 # Technical Details
 ## Running the code
-You need a [ProPublica API Key](https://www.propublica.org/datastore/api/propublica-congress-api) to replace `moc.json` with a full list of senators, and then running
+You need the following environment variables:
+- PROPUBLICA_API_KEY: [obtain it here](https://www.propublica.org/datastore/api/propublica-congress-api)
+- DEBUG: set to "True" to enable, "False" to disable
 
-```bash
-curl "https://api.propublica.org/congress/v1/115/senate/members.json" \
-                -H "X-API-Key: PROPUBLICA_API_KEY" > moc.json
-```
-Then run `python generateUrls.py` to generate two URLs, one for Red Friends and one for Blue Friends.
+After installing requirements and heroku CLI, you should be able to run `heroku local` to run it.
 
 
 ## Why only senators?
