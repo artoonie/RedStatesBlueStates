@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+
+<script src="https://d3js.org/d3.v3.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+<style type="text/css">
+
+/* On mouse hover, lighten state color */
+path:hover {
+    fill-opacity: .7;
+}
+
+/* Style for Custom Tooltip */
+div.tooltip {   
+     position: absolute;           
+    text-align: center;           
+    width: 60px;                  
+    height: 28px;                 
+    padding: 2px;             
+    font: 12px sans-serif;        
+    background: white;   
+    border: 0px;      
+    border-radius: 8px;           
+    pointer-events: none;         
+}
+        
+/* Legend Font Style */
+body {
+    font: 11px sans-serif;
+    background: #114357; /* fallback for old browsers */
+    background: -webkit-linear-gradient(to left, #D1E4FF, #FFD1D4); /* Chrome 10-25, Safari 5.1-6 */
+    background: linear-gradient(to left, #D1E4FF, #FFD1D4); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+    color:#2B282E;
+    text-align: center;
+}
+
+h1 {
+  font-size: 40px
+}
+
+a {
+  transition: color .4s;
+  color: #265C83;
+}
+
+a:link,
+a:visited { color: #265C83; }
+a:hover   { color: #10274C; }
+a:active  {
+  transition: color .3s;
+  color: #007BE6;
+}
+.link { text-decoration: none; }
+        
+/* Legend Position Style */
+.legend {
+    position:absolute;
+    left:50%;
+    margin-left:300px;
+    top:600px;
+}
+
+</style>
+</head>
+<body>
+
+<h1>Red Friends, Blue Friends.</h1>
+<div align="center">
+<h2>Influence other senators by influencing your friends in their state.<br>Click the link{% if contactLists|length > 1 %}s{% endif %} below to find your Facebook friends with:</h2>
+<table width="800"><tr>
+{% for cl in contactLists %}
+<td align="center">
+<h1>
+<a id="href_{{ cl.id }}" name="party" href="{{ cl.fbUrl }}">{{ cl.title }}</a>
+</h1>
+<h3>
+{{ cl.description }}
+</h3>
+</td>
+{% endfor %}
+</tr></table>
+</div>
+
+
+<div align="center">
+
+<script type="text/javascript">
+
+/* 
+
+This visualization was made possible by modifying code from:
+http://bl.ocks.org/michellechandra/0b2ce4923dc9b5809922
+
+Which in turn was modified from:
+Scott Murray, Choropleth example from "Interactive Data Visualization for the Web" 
+https://github.com/alignedleft/d3-book/blob/master/chapter_12/05_choropleth.html   
+        
+Malcolm Maclean, tooltips example tutorial
+http://www.d3noob.org/2013/01/adding-tooltips-to-d3js-graph.html
+
+Mike Bostock, Pie Chart Legend
+http://bl.ocks.org/mbostock/3888852  */
+
+        
+//Width and height of map
+var width = 960;
+var height = 500;
+
+// D3 Projection
+var projection = d3.geo.albersUsa()
+                   .translate([width/2, height/2])    // translate to center of screen
+                   .scale([1000]);          // scale things down so see entire US
+        
+// Define path generator
+var path = d3.geo.path()               // path generator that will convert GeoJSON to SVG paths
+               .projection(projection);  // tell path generator to use albersUsa projection
+
+        
+// Define linear scale for output
+var bitmaskToColor = {{ bitmaskToColor|safe }};
+
+var legendText = {{ legendText|safe }};
+
+//Create SVG element and append map to the SVG
+var svg = d3.select("body")
+            .append("svg")
+            .attr("width", width)
+            .attr("height", height);
+        
+// Append Div for tooltip to SVG
+var div = d3.select("body")
+            .append("div")   
+            .attr("class", "tooltip")               
+            .style("opacity", 0);
+
+// Load in my states data!
+{% load static %}
+d3.json( "{% static 'viewsenators/us-states.json' %}", function(json) {
+
+// Find the corresponding state inside the GeoJSON
+for (var j = 0; j < json.features.length; j++)  {
+    var d3State = json.features[j].properties.name;
+
+    {% for pyState, colorBitmask in stateToBitmasks.items %}
+        {% if forloop.counter0 == 0 %}
+            if
+        {% else %}
+            else if
+        {% endif %}
+        ("{{ pyState.name }}" == d3State) {
+            json.features[j].properties.colorBitmask = {{ colorBitmask }}; 
+            continue
+        }
+    {% endfor %}
+        else {
+            json.features[j].properties.colorBitmask = 0; 
+        }
+}
+        
+// Bind the data to the SVG and create one path per GeoJSON feature
+svg.selectAll("path")
+    .data(json.features)
+    .enter()
+    .append("path")
+    .attr("d", path)
+    .attr("colorBitmask", function(d) { return d.properties.colorBitmask } )
+    .style("stroke", "#fff")
+    .style("stroke-width", "1")
+    .style("fill", function(d) { return bitmaskToColor[d.properties.colorBitmask]; });
+
+// Modified Legend Code from Mike Bostock: http://bl.ocks.org/mbostock/3888852
+var legend = d3.select("body").append("svg")
+                  .attr("class", "legend")
+                 .attr("width", 340)
+                .attr("height", 200)
+                   .selectAll("g")
+                   .data(d3.values(bitmaskToColor))
+                   .enter()
+                   .append("g")
+                 .attr("transform", function(d, i) { return "translate(0," + i * 25 + ")"; });
+
+      legend.append("rect")
+             .attr("width", 18)
+             .attr("height", 18)
+             .style("fill", function(d, i) { return d3.values(bitmaskToColor)[i]; });
+
+      legend.append("text")
+            .data(d3.values(legendText))
+            .attr("x", 24)
+            .attr("y", 9)
+            .attr("dy", ".35em")
+            .text(function(d) { return d; });
+});
+</script>
+<script>
+function setColor(colorIdxToNotTouch) {
+    var gray="rgb(213,222,217)"
+    d3.selectAll("path").filter(
+        function(d) { return (d.properties.colorBitmask & (1<<colorIdxToNotTouch)) == 0 })
+        .style('fill', gray)
+        .style('transition', '0.5s')
+}
+function restoreColors() {
+    for (var idx in bitmaskToColor) {
+        $( "path[colorBitmask='" + idx + "']" ).css('fill',
+            function() { return bitmaskToColor[idx] } );
+    }
+    $( "path[colorBitmask='0']" ).css('fill', '#000' );
+}
+
+{% for cl in contactLists %}
+$(document).ready(function(){
+    $( "a[id='href_{{cl.id}}']" ).mouseenter(function(){setColor({{forloop.counter0}})});
+});
+{% endfor %}
+$(document).ready(function(){
+    $( "a[name='party']" ).mouseleave(function(){restoreColors()});
+});
+
+</script>
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-98881488-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+</div>
+
+<br/><br/><br/><br/>
+<div align="center">
+Made by <a href="http://www.arminsamii.com">Armin Samii</a> with help from <a href="https://propublica.github.io/congress-api-docs/">ProPublica Congress API</a> and <a href="http://bl.ocks.org/michellechandra/0b2ce4923dc9b5809922">Michelle Chandra's D3 Map</a>. Available open-source on <a href="https://github.com/artoonie/RedStatesBlueStates">github</a>.
+</div>
+{{text}}
+
+<div align="center" style="color:#666">
+<br/><br/><br/><br/>
+<h2>FAQ</h2>
+<strong>How do I make a custom map for my own cause?</strong><br>
+Select which senators you want your friends to contact from <a href="create">this link</a>.
+<br> <br>
+
+<strong>How do I include multiple causes on the same map?</strong><br>
+There isn't a good UI for this yet, but you can comma-separate multiple IDs in the URL.
+<br> <br>
+
+<strong>Can I search directly on facebook instead of using this site?</strong><br>
+Not really - you'll get garbage if you search "My friends who live in California or live in Arizona" on Facebook.<br>
+If you use the links on site, the Facebook search term will look the same, but it will actually work.
+<br><br>
+
+<strong>Can this work for my representative as well?</strong><br>
+Not yet, due to the complex boundaries caused by gerrymandering.
+<br> <br>
+
+</div>
+
+</body>
+</html>
