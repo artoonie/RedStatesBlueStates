@@ -113,7 +113,7 @@ def createContactList(request):
             title = data['title']
             description = data['description']
             senators = data['senators']
-            _makeContactList(title, description, senators)
+            cl = _makeContactList(title, description, senators)
             return HttpResponseRedirect(reverse('index')+'?lists=' + cl.uid.hex)
     # if a GET (or any other method) we'll create a blank form
     else:
@@ -155,6 +155,7 @@ def _makeContactList(title, description, senatorList):
     cl.senators = senatorList
     cl.fbUrl = _senatorListToFbCode(cl.senators.all())
     cl.save()
+    return cl
 
 def populateSenators(request):
     """ Populate the list of senators using the ProPublica API """
