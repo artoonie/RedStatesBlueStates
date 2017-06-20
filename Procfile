@@ -1,1 +1,1 @@
-web: gunicorn redblue/redblue.wsgi --log-file -
+web: gunicorn redblue:viewsenators
