@@ -2,7 +2,7 @@ from django import forms
 from .models import Senator, ContactList
 
 def getSenatorChoices():
-    def s2t(s): return "[%s] %s, %s" % (s.state.name, s.firstName, s.lastName)
+    def s2t(s): return "[%s] %s, %s" % (s.state.name, s.lastName, s.firstName)
     return sorted([(s.id, s2t(s)) for s in Senator.objects.all()],
                    key=lambda x: x[1])
 

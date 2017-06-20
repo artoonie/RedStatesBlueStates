@@ -127,11 +127,19 @@ for (var j = 0; j < json.features.length; j++)  {
     var d3State = json.features[j].properties.name;
 
     {% for pyState, colorBitmask in stateToBitmasks.items %}
-        if ("{{ pyState.name }}" == d3State) {
+        {% if forloop.counter0 == 0 %}
+            if
+        {% else %}
+            else if
+        {% endif %}
+        ("{{ pyState.name }}" == d3State) {
             json.features[j].properties.colorBitmask = {{ colorBitmask }}; 
             continue
         }
     {% endfor %}
+        else {
+            json.features[j].properties.colorBitmask = 0; 
+        }
 }
         
 // Bind the data to the SVG and create one path per GeoJSON feature
@@ -148,7 +156,7 @@ svg.selectAll("path")
 // Modified Legend Code from Mike Bostock: http://bl.ocks.org/mbostock/3888852
 var legend = d3.select("body").append("svg")
                   .attr("class", "legend")
-                 .attr("width", 140)
+                 .attr("width", 340)
                 .attr("height", 200)
                    .selectAll("g")
                    .data(d3.values(bitmaskToColor))
@@ -182,14 +190,14 @@ function restoreColors() {
         $( "path[colorBitmask='" + idx + "']" ).css('fill',
             function() { return bitmaskToColor[idx] } );
     }
+    $( "path[colorBitmask='0']" ).css('fill', '#000' );
 }
 
+{% for cl in contactLists %}
 $(document).ready(function(){
-    $( "a[id='repparty']" ).mouseenter(function(){setColor(0)});
+    $( "a[id='href_{{cl.id}}']" ).mouseenter(function(){setColor({{forloop.counter0}})});
 });
-$(document).ready(function(){
-    $( "a[id='demparty']" ).mouseenter(function(){setColor(1)});
-});
+{% endfor %}
 $(document).ready(function(){
     $( "a[name='party']" ).mouseleave(function(){restoreColors()});
 });
@@ -209,12 +217,19 @@ $(document).ready(function(){
 
 <div align="center">
 <br/><br/><br/><br/>
-<h2>Influence other senators by influencing your friends in their state.<br>Click the links below to find your Facebook friends with:</h2>
+<h2>Influence other senators by influencing your friends in their state.<br>Click the link{% if contactLists|length > 1 %}s{% endif %} below to find your Facebook friends with:</h2>
+<table width="800"><tr>
+{% for cl in contactLists %}
+<td align="center">
 <h1>
-<a id="repparty" name="party" href="https://www.facebook.com/search/109146809103536/residents/present/112083625475436/residents/present/109714185714936/residents/present/104039182964473/residents/present/108337852519784/residents/present/112822538733611/residents/present/104083326294266/residents/present/104131666289619/residents/present/109306932420886/residents/present/108545005836236/residents/present/105528489480786/residents/present/109176885767113/residents/present/106153826081984/residents/present/108083605879747/residents/present/104037882965264/residents/present/111689148842696/residents/present/103994709636969/residents/present/111957282154793/residents/present/104004246303834/residents/present/108296539194138/residents/present/108037302558105/residents/present/108603925831326/residents/present/105818976117390/residents/present/104024609634842/residents/present/104164412953145/residents/present/103118929728297/residents/present/105493439483468/residents/present/109983559020167/residents/present/113067432040067/residents/present/108635949160808/residents/present/109438335740656/residents/present/112283278784694/residents/present/union/me/friends/intersect">Republican Senators</a>
-&middot;
-<a id="demparty" name="party" href="https://www.facebook.com/search/110453875642908/residents/present/105643859470062/residents/present/109146809103536/residents/present/112083625475436/residents/present/113667228643818/residents/present/109714185714936/residents/present/105486989486087/residents/present/108325505857259/residents/present/108301835856691/residents/present/104131666289619/residents/present/109306932420886/residents/present/112825018731802/residents/present/105528489480786/residents/present/108295552526163/residents/present/109176885767113/residents/present/109564639069465/residents/present/106153826081984/residents/present/108131585873862/residents/present/107907135897622/residents/present/112386318775352/residents/present/111957282154793/residents/present/112750485405808/residents/present/108178019209812/residents/present/112439102104396/residents/present/104024609634842/residents/present/103118929728297/residents/present/112577505420980/residents/present/109706309047793/residents/present/109983559020167/residents/present/109564342404151/residents/present/union/me/friends/intersect">Democratic Senators</a>
-</h2>
+<a id="href_{{ cl.id }}" name="party" href="{{ cl.fbUrl }}">{{ cl.title }}</a>
+</h1>
+<h3>
+{{ cl.description }}
+</h3>
+</td>
+{% endfor %}
+</tr></table>
 </div>
 
 <br/><br/><br/><br/>
@@ -222,6 +237,32 @@ $(document).ready(function(){
 Made by <a href="http://www.arminsamii.com">Armin Samii</a> with help from <a href="https://propublica.github.io/congress-api-docs/">ProPublica Congress API</a> and <a href="http://bl.ocks.org/michellechandra/0b2ce4923dc9b5809922">Michelle Chandra's D3 Map</a>. Available open-source on <a href="https://github.com/artoonie/RedStatesBlueStates">github</a>.
 </div>
 {{text}}
+
+<div align="center" style="color:#666">
+<br/><br/><br/><br/>
+<h2>FAQ</h2>
+<strong>How do I make a custom map for my own cause?</strong><br>
+Select which senators you want your friends to contact from <a href="create">this link</a>.
+<br> <br>
+
+<strong>How do I include multiple causes on the same map?</strong><br>
+There isn't a good UI for this yet, but you can comma-separate multiple IDs in the URL.
+<br> <br>
+
+<strong>Can I search directly on facebook instead of using this site?</strong><br>
+Not really - you'll get garbage if you search "My friends who live in California or live in Arizona" on Facebook.<br>
+If you use the links on site, the Facebook search term will look the same, but it will actually work.
+<br><br>
+
+<strong>Can I use this site to generate a Facebook Search URL and send that directly to my friends?</strong><br>
+Of course - just <a href="{{ cl.fbUrl }}">share this link</a> with your friends.
+<br><br>
+
+<strong>Can this work for my representative as well?</strong><br>
+Not yet, due to the complex boundaries caused by gerrymandering.
+<br> <br>
+
+</div>
 
 </body>
 </html>

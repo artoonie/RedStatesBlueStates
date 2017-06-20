@@ -6,29 +6,29 @@ import json
 import os
 import requests
 
+from django.core.urlresolvers import reverse
 from django.conf import settings
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.template import loader
 from .models import State, Senator, ContactList
 from .forms import ChooseForm
-
-Democrat = "D"
-Republican = "R"
-def _partyToText(whichParty):
-    if whichParty == Democrat:
-        return "Blue"
-    elif whichParty == Republican:
-        return "Red"
-    else:
-        assert False
 
 def index(request):
     def colorToD3(color):
         return "rgb(%d,%d,%d)" % (color.red*255, color.green*255, color.blue*255)
     template = loader.get_template('viewsenators/index.html')
-    contactLists = [ContactList.objects.get(id=14),
-                    ContactList.objects.get(id=15),
-                    ContactList.objects.get(id=16)]
+
+    if 'lists' in request.GET:
+        clIds = str.split(str(request.GET['lists']), ',')
+        clIds = [str(x) for x in clIds]
+    else:
+        # TODO don't hardcode dem/rep/indep IDs
+        clIds = ["a3ecb681c43347e2933cf3a9919ba436",
+                 "d9727b4de35e4cb3a0d86717623dc282",
+                 "6651db4adea94468a819fd7064fb9f4b"]
+    contactLists = [ContactList.objects.get(uid=x) for x in clIds]
+    if len(contactLists) > 8:
+        return debugWriteAnything("You can combine up to 8 lists at most")
 
     statesInList = {}
     allStates = set()
@@ -58,7 +58,7 @@ def index(request):
         elif 'Independent' in cl.title:
             bitmaskToColor[idx] = Color(rgb=(128/255.0, 128/255.0,   0/255.0))
         else:
-            bitmaskToColor[idx] = Color(rgb=(213/255.0, 222/255.0, 217/255.0))
+            bitmaskToColor[idx] = Color(pick_for=idx)
 
     # Double-association colors
     for i0 in range(len(contactLists)):
@@ -76,7 +76,7 @@ def index(request):
     # Add used (more-than-two associations not added)
     for i in range(2**len(contactLists)):
         if i in setOfColorIdxs and i not in bitmaskToColor:
-            bitmaskToColor[i] = Color()
+            bitmaskToColor[i] = Color(pick_for=i)
         elif i not in setOfColorIdxs and i in bitmaskToColor:
             del bitmaskToColor[i]
 
@@ -97,11 +97,21 @@ def index(request):
     context = {
         "bitmaskToColor": json.dumps(bitmaskToColor),
         "stateToBitmasks": stateToBitmask,
-        "legendText": json.dumps(legendText)
+        "legendText": json.dumps(legendText),
+        "contactLists": contactLists
     }
     return HttpResponse(template.render(context, request))
 
 def createContactList(request):
+    def _senatorListToFbCode(senators):
+        setOfStates = set([s.state for s in senators])
+        url = "https://www.facebook.com/search/"
+        for state in setOfStates:
+            key = state.facebookId
+            url += key + "/residents/present/"
+        url += "union/me/friends/intersect"
+        return url
+
     # if this is a POST request we need to process the form data
     if request.method == 'POST':
         # create a form instance and populate it with data from the request:
@@ -117,13 +127,9 @@ def createContactList(request):
                     title = title,
                     description = description)
             cl.senators = senators
+            cl.fbUrl = _senatorListToFbCode(cl.senators.all())
             cl.save()
-
-            text = '<br><br><br>'.join(
-                [c.title + "<br>" + c.description + "<br>" +
-                ', '.join(s.lastName for s in c.senators.all()) \
-                for c in ContactList.objects.all()])
-            return debugWriteAnything(text)
+            return HttpResponseRedirect(reverse('index')+'?lists=' + cl.uid.hex)
     # if a GET (or any other method) we'll create a blank form
     else:
         form = ChooseForm()
