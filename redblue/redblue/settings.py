@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 import os
+import dj_database_url
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -19,13 +20,20 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '$tgkz+a_e3q-rhvucrmc8c&o@1a1badrxv)emoq3qw--ir6sjm'
-
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ['DEBUG'] == "True"
 
-ALLOWED_HOSTS = ["redfriendsbluefriends.herokuapp.com"]
+# SECURITY WARNING: keep the secret key used in production secret!
+if DEBUG:
+    SECRET_KEY = '$tgkz+a_e3q-rhvucrmc8c&o@1a1badrxv)emoq3qw--ir6sjm'
+else:
+    SECRET_KEY = os.environ['SECRET_KEY']
+
+
+if DEBUG:
+    ALLOWED_HOSTS = ["0.0.0.0"]
+else:
+    ALLOWED_HOSTS = ["redfriendsbluefriends.herokuapp.com"]
 
 
 # Application definition
@@ -74,12 +82,15 @@ WSGI_APPLICATION = 'redblue.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+if DEBUG:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        }
     }
-}
+else:
+    DATABASES['default'] =  dj_database_url.config()
 
 
 # Password validation

@@ -18,6 +18,7 @@ from django.contrib import admin
 
 
 urlpatterns = [
+    url(r'^', include('viewsenators.urls')),
     url(r'^viewsenators/', include('viewsenators.urls')),
     url(r'^admin/', admin.site.urls),
 ]
