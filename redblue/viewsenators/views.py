@@ -21,12 +21,11 @@ def index(request):
     if 'lists' in request.GET:
         clIds = str.split(str(request.GET['lists']), ',')
         clIds = [str(x) for x in clIds]
+        contactLists = [ContactList.objects.get(uid=x) for x in clIds]
     else:
-        # TODO don't hardcode dem/rep/indep IDs
-        clIds = ["a3ecb681c43347e2933cf3a9919ba436",
-                 "d9727b4de35e4cb3a0d86717623dc282",
-                 "6651db4adea94468a819fd7064fb9f4b"]
-    contactLists = [ContactList.objects.get(uid=x) for x in clIds]
+        # TODO is it okay to hardcode the first three rows?
+        ids = [1, 2, 3]
+        contactLists = [ContactList.objects.get(id=x) for x in ids]
     if len(contactLists) > 8:
         return debugWriteAnything("You can combine up to 8 lists at most")
 
@@ -103,15 +102,6 @@ def index(request):
     return HttpResponse(template.render(context, request))
 
 def createContactList(request):
-    def _senatorListToFbCode(senators):
-        setOfStates = set([s.state for s in senators])
-        url = "https://www.facebook.com/search/"
-        for state in setOfStates:
-            key = state.facebookId
-            url += key + "/residents/present/"
-        url += "union/me/friends/intersect"
-        return url
-
     # if this is a POST request we need to process the form data
     if request.method == 'POST':
         # create a form instance and populate it with data from the request:
@@ -123,12 +113,7 @@ def createContactList(request):
             title = data['title']
             description = data['description']
             senators = data['senators']
-            cl = ContactList.objects.create(
-                    title = title,
-                    description = description)
-            cl.senators = senators
-            cl.fbUrl = _senatorListToFbCode(cl.senators.all())
-            cl.save()
+            _makeContactList(title, description, senators)
             return HttpResponseRedirect(reverse('index')+'?lists=' + cl.uid.hex)
     # if a GET (or any other method) we'll create a blank form
     else:
@@ -153,6 +138,23 @@ def debugWriteAnything(text):
     response = HttpResponse()
     response.write(text)
     return response
+
+def _makeContactList(title, description, senatorList):
+    def _senatorListToFbCode(senators):
+        setOfStates = set([s.state for s in senators])
+        url = "https://www.facebook.com/search/"
+        for state in setOfStates:
+            key = state.facebookId
+            url += key + "/residents/present/"
+        url += "union/me/friends/intersect"
+        return url
+
+    cl = ContactList.objects.create(
+            title = title,
+            description = description)
+    cl.senators = senatorList
+    cl.fbUrl = _senatorListToFbCode(cl.senators.all())
+    cl.save()
 
 def populateSenators(request):
     """ Populate the list of senators using the ProPublica API """
@@ -190,31 +192,42 @@ def populateSenators(request):
             assert numStates == 50
             return
 
-        fp = os.path.join(settings.STATIC_ROOT, 'stateToFbCode.txt')
-        with open(fp, 'rb') as dataFile:
-            for line in dataFile:
-                if line.startswith('#'): continue
-                splitLine = line.split(',')
+        import stateToFbCode
+        for line in stateToFbCode.mapping:
+            abbrev = line[0]
+            name = line[1]
+            facebookId = line[2]
 
-                abbrev = splitLine[0].strip()
-                name = splitLine[1].strip()
-                facebookId = splitLine[2].strip()
+            State.objects.create(name=name,
+                                 abbrev=abbrev,
+                                 facebookId=facebookId)
+    def _createInitialLists():
+        assert ContactList.objects.count() == 0
+        assert Senator.objects.count() == 100
+        allSenators = Senator.objects.all()
+        for party in Senator.PARTY_CHOICES:
+            title = party[1]
+            if party[0] == "D":
+                desc = "Democratic"
+            else:
+                desc = party[1]
+            description = "All " + desc + " senators"
+            senators = Senator.objects.filter(party=party[0])
+            _makeContactList(title, description, senators)
 
-                State.objects.create(name=name,
-                                     abbrev=abbrev,
-                                     facebookId=facebookId)
-    assert len(State.objects.all()) != 0
+    #if not State.objects.count() == 0:
+    #    return debugWriteAnything("Already initialized.")
+
     url = 'https://api.propublica.org/congress/v1/115/senate/members.json'
     apiKey = os.environ['PROPUBLICA_API_KEY']
     headers = {'X-API-Key': apiKey}
-    dataFile = requests.get(url, headers=headers)
 
     _populateStates()
+    dataFile = requests.get(url, headers=headers)
     _populateSenatorsWith(dataFile.json())
+    _createInitialLists()
 
-    response = HttpResponse()
     senators = Senator.objects.all()
     def s2t(s): return "%s: %s, %s" % (s.state.abbrev, s.firstName, s.lastName)
     senText = '<br>'.join(sorted([s2t(s) for s in senators]))
-    response.write("The list of senators: <br>" + senText)
-    return response
+    return debugWriteAnything("The list of senators: <br>" + senText)

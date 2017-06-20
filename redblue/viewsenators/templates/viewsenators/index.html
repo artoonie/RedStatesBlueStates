@@ -60,12 +60,30 @@ a:active  {
     position:absolute;
     left:50%;
     margin-left:300px;
-    top:450px;
+    top:600px;
 }
 
 </style>
 </head>
 <body>
+
+<h1>Red Friends, Blue Friends.</h1>
+<div align="center">
+<h2>Influence other senators by influencing your friends in their state.<br>Click the link{% if contactLists|length > 1 %}s{% endif %} below to find your Facebook friends with:</h2>
+<table width="800"><tr>
+{% for cl in contactLists %}
+<td align="center">
+<h1>
+<a id="href_{{ cl.id }}" name="party" href="{{ cl.fbUrl }}">{{ cl.title }}</a>
+</h1>
+<h3>
+{{ cl.description }}
+</h3>
+</td>
+{% endfor %}
+</tr></table>
+</div>
+
 
 <div align="center">
 
@@ -162,7 +180,7 @@ var legend = d3.select("body").append("svg")
                    .data(d3.values(bitmaskToColor))
                    .enter()
                    .append("g")
-                 .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
+                 .attr("transform", function(d, i) { return "translate(0," + i * 25 + ")"; });
 
       legend.append("rect")
              .attr("width", 18)
@@ -212,24 +230,6 @@ $(document).ready(function(){
   ga('send', 'pageview');
 </script>
 
-<h1>Red Friends, Blue Friends.</h1>
-</div>
-
-<div align="center">
-<br/><br/><br/><br/>
-<h2>Influence other senators by influencing your friends in their state.<br>Click the link{% if contactLists|length > 1 %}s{% endif %} below to find your Facebook friends with:</h2>
-<table width="800"><tr>
-{% for cl in contactLists %}
-<td align="center">
-<h1>
-<a id="href_{{ cl.id }}" name="party" href="{{ cl.fbUrl }}">{{ cl.title }}</a>
-</h1>
-<h3>
-{{ cl.description }}
-</h3>
-</td>
-{% endfor %}
-</tr></table>
 </div>
 
 <br/><br/><br/><br/>
@@ -252,10 +252,6 @@ There isn't a good UI for this yet, but you can comma-separate multiple IDs in t
 <strong>Can I search directly on facebook instead of using this site?</strong><br>
 Not really - you'll get garbage if you search "My friends who live in California or live in Arizona" on Facebook.<br>
 If you use the links on site, the Facebook search term will look the same, but it will actually work.
-<br><br>
-
-<strong>Can I use this site to generate a Facebook Search URL and send that directly to my friends?</strong><br>
-Of course - just <a href="{{ cl.fbUrl }}">share this link</a> with your friends.
 <br><br>
 
 <strong>Can this work for my representative as well?</strong><br>
