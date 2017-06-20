@@ -1,1 +1,0 @@
-web: gunicorn redblue.wsgi --log-file -
