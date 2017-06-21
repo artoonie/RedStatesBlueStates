@@ -7,5 +7,6 @@ from . import views
 urlpatterns = [
     url(r'^$', views.index, name='index'),
     url(r'^create$', views.createContactList, name='create'),
+    url(r'^combine$', views.combineContactList, name='combine'),
     url(r'^initialize$', views.populateSenators, name='populateSenators'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

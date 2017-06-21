@@ -7,11 +7,10 @@ import os
 import requests
 
 from django.core.urlresolvers import reverse
-from django.conf import settings
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import loader
 from .models import State, Senator, ContactList
-from .forms import ChooseForm
+from .forms import ChooseForm, CombineForm
 
 def index(request):
     def colorToD3(color):
@@ -99,6 +98,27 @@ def index(request):
         "legendText": json.dumps(legendText),
         "contactLists": contactLists
     }
+    return HttpResponse(template.render(context, request))
+
+def combineContactList(request):
+    # if this is a POST request we need to process the form data
+    if request.method == 'POST':
+        # create a form instance and populate it with data from the request:
+        form = CombineForm(request.POST)
+
+        # check whether it's valid:
+        if form.is_valid():
+            data = form.cleaned_data
+            contactLists = data['contactLists']
+            uids = [ContactList.objects.get(id=c).uid.hex for c in contactLists]
+            uidStr = ','.join(uids)
+            return HttpResponseRedirect(reverse('index')+'?lists=' + uidStr)
+
+    # if a GET (or any other method) we'll create a blank form
+    form = CombineForm()
+
+    template = loader.get_template('viewsenators/combine.html')
+    context = {'form': form}
     return HttpResponse(template.render(context, request))
 
 def createContactList(request):
@@ -205,7 +225,6 @@ def populateSenators(request):
     def _createInitialLists():
         assert ContactList.objects.count() == 0
         assert Senator.objects.count() == 100
-        allSenators = Senator.objects.all()
         for party in Senator.PARTY_CHOICES:
             title = party[1]
             if party[0] == "D":

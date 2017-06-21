@@ -27,3 +27,5 @@ class ContactList(models.Model):
     fbUrl = models.CharField(max_length=4096)
     uid = models.UUIDField(primary_key=False, default=uuid.uuid4,
                            editable=False, max_length=16)
+    public = models.BooleanField(default=True,
+        verbose_name="Make this list viewable to anyone, even without a link?")
