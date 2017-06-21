@@ -23,8 +23,7 @@ def index(request):
         contactLists = [ContactList.objects.get(uid=x) for x in clIds]
     else:
         # TODO is it okay to hardcode the first three rows?
-        ids = [1, 2, 3]
-        contactLists = [ContactList.objects.get(id=x) for x in ids]
+        contactLists = ContactList.objects.order_by()[0:3]
     if len(contactLists) > 8:
         return debugWriteAnything("You can combine up to 8 lists at most")
 

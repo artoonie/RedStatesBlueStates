@@ -11,7 +11,7 @@ def getContactListChoices():
             "Unique ID: %s<br/><br/><br/><br/>" % \
             (c.fbUrl, c.title, c.description,
              ', '.join([s.lastName for s in c.senators.all()]), c.uid))
-    return reversed([(s.id, c2t(s)) for s in ContactList.objects.all()])
+    return reversed([(s.id, c2t(s)) for s in ContactList.objects.filter(public=True)])
 
 def getSenatorChoices():
     def s2t(s): return "[%s] %s, %s" % (s.state.name, s.lastName, s.firstName)
