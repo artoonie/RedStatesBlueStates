@@ -1,5 +1,32 @@
 {% include "halcyonic/header.html" %}
 
+<script>
+function setColor(colorIdxToNotTouch) {
+    var gray="rgb(213,222,217)"
+    d3.selectAll("path").filter(
+        function(d) { return (d.properties.colorBitmask & (1<<colorIdxToNotTouch)) == 0 })
+        .style('fill', gray)
+        .style('transition', '0.5s')
+}
+function restoreColors() {
+    for (var idx in bitmaskToColor) {
+        $( "path[colorBitmask='" + idx + "']" ).css('fill',
+            function() { return bitmaskToColor[idx] } );
+    }
+    $( "path[colorBitmask='0']" ).css('fill', '#000' );
+}
+
+{% for cl in contactLists %}
+$(document).ready(function(){
+    $( "a[id='href_{{cl.id}}']" ).mouseenter(function(){setColor({{forloop.counter0}})});
+});
+{% endfor %}
+$(document).ready(function(){
+    $( "a[name='party']" ).mouseleave(function(){restoreColors()});
+});
+
+</script>
+
 			<!-- Features -->
 				<div id="features-wrapper">
 					<div id="features">
