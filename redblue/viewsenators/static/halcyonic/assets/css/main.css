@@ -1191,7 +1191,11 @@
 			width: 100%;
 		}
 
-	.button-big {
+	.button-small {
+	font-size: 1.1em !important;
+	padding: 05px 15px 05px 15px !important;
+}
+	.button-big, .button-small {
 		background-image: -moz-linear-gradient(top, #ed391b, #ce1a00);
 		background-image: -webkit-linear-gradient(top, #ed391b, #ce1a00);
 		background-image: -ms-linear-gradient(top, #ed391b, #ce1a00);
@@ -1209,7 +1213,7 @@
 		text-shadow: -1px -1px 1px rgba(0, 0, 0, 0.5);
 	}
 
-		.button-big:hover {
+		.button-big:hover, .button-small:hover {
 			background-image: -moz-linear-gradient(top, #fd492b, #de2a10);
 			background-image: -webkit-linear-gradient(top, #fd492b, #de2a10);
 			background-image: -ms-linear-gradient(top, #fd492b, #de2a10);
@@ -1218,7 +1222,7 @@
 			box-shadow: inset 0px 0px 0px 1px rgba(0, 0, 0, 0.75), inset 0px 2px 0px 0px rgba(255, 192, 192, 0.5), inset 0px 0px 0px 2px rgba(255, 96, 96, 0.85), 3px 3px 3px 1px rgba(0, 0, 0, 0.15);
 		}
 
-		.button-big:active {
+		.button-big:active, .button-small:active {
 			background-image: -moz-linear-gradient(top, #ce1a00, #ed391b);
 			background-image: -webkit-linear-gradient(top, #ce1a00, #ed391b);
 			background-image: -ms-linear-gradient(top, #ce1a00, #ed391b);
@@ -1496,7 +1500,7 @@
 				margin: 0 0 1em 0;
 			}
 
-			.button-big {
+			.button-big, .button-small {
 				font-size: 1.5em;
 				padding: 10px 35px 10px 35px;
 			}
@@ -1566,7 +1570,7 @@
 				font-size: 1em;
 			}
 
-			.button-big {
+			.button-big, .button-small {
 				font-size: 1.5em;
 				padding: 10px 35px 10px 35px;
 			}
