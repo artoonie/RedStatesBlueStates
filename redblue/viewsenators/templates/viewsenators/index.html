@@ -69,7 +69,20 @@ a:active  {
 
 <h1>Red Friends, Blue Friends.</h1>
 <div align="center">
-<h2>Influence other senators by influencing your friends in their state.<br>Click the link{% if contactLists|length > 1 %}s{% endif %} below to find your Facebook friends with:</h2>
+    <h2>
+        Influence Senate votes by asking your Facebook friends to message their senators.
+        <br>
+        Click
+            {% if contactLists|length > 1 %}
+                each of the links
+            {% else %}
+                the link
+            {% endif %}
+        below to find your Facebook friends in key states.
+        <br> <br>
+    <a href="create">Or, click here to generate a custom Facebook search link for your own cause.</a>
+
+    </h2>
 <table width="800"><tr>
 {% for cl in contactLists %}
 <td align="center">
@@ -87,7 +100,6 @@ a:active  {
 <div align="center">
 
 <script type="text/javascript">
-
 /* 
 
 This visualization was made possible by modifying code from:
@@ -231,11 +243,11 @@ $(document).ready(function(){
 
 </div>
 
-<h2><a href="create">[or, select senators to contact for your own cause]</a></h2>
-
 <br/><br/><br/><br/>
 <div align="center">
 Made by <a href="http://www.arminsamii.com">Armin Samii</a> with help from <a href="https://propublica.github.io/congress-api-docs/">ProPublica Congress API</a> and <a href="http://bl.ocks.org/michellechandra/0b2ce4923dc9b5809922">Michelle Chandra's D3 Map</a>. Available open-source on <a href="https://github.com/artoonie/RedStatesBlueStates">github</a>.
+<br>
+Inspired by <a href="http://www.indivisibleberkeley.org">Indivisible Berkeley</a>.
 </div>
 {{text}}
 
