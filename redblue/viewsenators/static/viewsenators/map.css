@@ -1,0 +1,44 @@
+/* On mouse hover, lighten state color */
+path:hover {
+    fill-opacity: .7;
+}
+
+/* Style for Custom Tooltip */
+div.tooltip {   
+     position: absolute;           
+    text-align: center;           
+    width: 60px;                  
+    height: 28px;                 
+    padding: 2px;             
+    font: 12px sans-serif;        
+    background: white;   
+    border: 0px;      
+    border-radius: 8px;           
+    pointer-events: none;         
+}
+        
+/* Legend Font Style */
+body {
+    font: 11px sans-serif;
+    background: #114357; /* fallback for old browsers */
+    background: -webkit-linear-gradient(to left, #D1E4FF, #FFD1D4); /* Chrome 10-25, Safari 5.1-6 */
+    background: linear-gradient(to left, #D1E4FF, #FFD1D4); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+    color:#2B282E;
+    text-align: center;
+}
+
+h1 {
+  font-size: 40px
+}
+
+a {
+  transition: color .4s;
+  color: #265C83;
+}
+        
+/* Legend Position Style */
+.legend {
+    position:absolute;
+    right:10px;
+    bottom:200px;
+}

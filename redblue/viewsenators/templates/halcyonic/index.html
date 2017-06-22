@@ -1,0 +1,147 @@
+{% include "halcyonic/header.html" %}
+
+			<!-- Features -->
+				<div id="features-wrapper">
+					<div id="features">
+						<div class="container">
+							<div class="row">
+{% for cl in contactLists %}
+								<div class="{{contactLists|length|add:"1"}}u 12u(mobile)" align="center">
+										<section>
+											Click to search Facebook:<br>
+											<a href="{{ cl.fbUrl }}" id="href_{{ cl.id }}" name="party" class="button-big">{{ cl.title }}</a>
+											<p>
+												{{ cl.description }}
+											</p>
+										</section>
+								</div>
+{% endfor %}
+							</div>
+						</div>
+					</div>
+				</div>
+
+			<!-- Content -->
+				<div id="content-wrapper">
+					<div id="content">
+						<div class="container">
+							<div class="row">
+								<div style="width:100%">
+										<section id="map">
+
+<script type="text/javascript">
+/* 
+
+This visualization was made possible by modifying code from:
+http://bl.ocks.org/michellechandra/0b2ce4923dc9b5809922
+
+Which in turn was modified from:
+Scott Murray, Choropleth example from "Interactive Data Visualization for the Web" 
+https://github.com/alignedleft/d3-book/blob/master/chapter_12/05_choropleth.html   
+        
+Malcolm Maclean, tooltips example tutorial
+http://www.d3noob.org/2013/01/adding-tooltips-to-d3js-graph.html
+
+Mike Bostock, Pie Chart Legend
+http://bl.ocks.org/mbostock/3888852  */
+
+        
+//Width and height of map
+var width = 960;
+var height = 500;
+
+// D3 Projection
+var projection = d3.geo.albersUsa()
+                   .translate([width/2, height/2])    // translate to center of screen
+                   .scale([1000]);          // scale things down so see entire US
+        
+// Define path generator
+var path = d3.geo.path()               // path generator that will convert GeoJSON to SVG paths
+               .projection(projection);  // tell path generator to use albersUsa projection
+
+        
+// Define linear scale for output
+var bitmaskToColor = {{ bitmaskToColor|safe }};
+
+var legendText = {{ legendText|safe }};
+
+//Create SVG element and append map to the SVG
+var svg = d3.select("#map")
+            .append("svg")
+            .attr("width", width)
+            .attr("height", height);
+        
+// Append Div for tooltip to SVG
+var div = d3.select("#map")
+            .append("div")   
+            .attr("class", "tooltip")               
+            .style("opacity", 0);
+
+// Load in my states data!
+{% load static %}
+d3.json( "{% static 'viewsenators/us-states.json' %}", function(json) {
+
+// Find the corresponding state inside the GeoJSON
+for (var j = 0; j < json.features.length; j++)  {
+    var d3State = json.features[j].properties.name;
+
+    {% for pyState, colorBitmask in stateToBitmasks.items %}
+        {% if forloop.counter0 == 0 %}
+            if
+        {% else %}
+            else if
+        {% endif %}
+        ("{{ pyState.name }}" == d3State) {
+            json.features[j].properties.colorBitmask = {{ colorBitmask }}; 
+            continue
+        }
+    {% endfor %}
+        else {
+            json.features[j].properties.colorBitmask = 0; 
+        }
+}
+        
+// Bind the data to the SVG and create one path per GeoJSON feature
+svg.selectAll("path")
+    .data(json.features)
+    .enter()
+    .append("path")
+    .attr("d", path)
+    .attr("colorBitmask", function(d) { return d.properties.colorBitmask } )
+    .style("stroke", "#fff")
+    .style("stroke-width", "1")
+    .style("fill", function(d) { return bitmaskToColor[d.properties.colorBitmask]; });
+
+// Modified Legend Code from Mike Bostock: http://bl.ocks.org/mbostock/3888852
+var legend = d3.select("body").append("svg")
+                  .attr("class", "legend")
+                 .attr("width", 340)
+                .attr("height", 200)
+                   .selectAll("g")
+                   .data(d3.values(bitmaskToColor))
+                   .enter()
+                   .append("g")
+                 .attr("transform", function(d, i) { return "translate(0," + i * 25 + ")"; });
+
+      legend.append("rect")
+             .attr("width", 18)
+             .attr("height", 18)
+             .style("fill", function(d, i) { return d3.values(bitmaskToColor)[i]; });
+
+      legend.append("text")
+            .data(d3.values(legendText))
+            .attr("x", 24)
+            .attr("y", 9)
+            .attr("dy", ".35em")
+            .text(function(d) { return d; });
+});
+</script>
+										</section>
+
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+{% include "halcyonic/footer.html" %}

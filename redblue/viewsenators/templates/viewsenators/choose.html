@@ -1,7 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
+{% include "halcyonic/header.html" %}
 
 {% load static %}
 <link rel="stylesheet" type="text/css" href="{% static 'viewsenators/style.css' %}">
@@ -25,24 +22,56 @@ function selectParty(partyIdList) {
     checkboxes[i].checked = true;
   }
 }
-
 </script>
-</head>
-<body>
-<center>
-<input type="button" value="Select All" onClick="selectAll()" />
-<input type="button" value="Select None" onClick="selectNone()" /><br/>
+
+			<!-- Features -->
+				<div id="features-wrapper">
+					<div id="features">
+						<div class="container">
+							<div class="row">
+								<div class="2u 12u(mobile)" align="center">
+										<section>
+											<a href="#" class="button-small" onClick="selectAll()">Select All</a>
+										</section>
+								</div>
+								<div class="2u 12u(mobile)" align="center">
+										<section>
+											<a href="#" class="button-small" onClick="selectNone()">Select None</a>
+										</section>
+								</div>
+								<div class="2u 12u(mobile)" align="center">
+								<!--spacer-->
+								</div>
 {% for party, idList in ids.items %}
-    <input type="button" value="Select {{party}}s" onClick="selectParty('{{ idList }}')" />
+								<div class="2u 12u(mobile)" align="center">
+										<section>
+											<a href="#" class="button-small" onClick="selectParty('{{ idList }}')">Select {{party}}s</a>
+										</section>
+								</div>
 {% endfor %}
-</center>
+							</div>
+						</div>
+					</div>
+				</div>
 
+			<!-- Content -->
+				<div id="content-wrapper">
+					<div id="content">
+						<div class="container">
+							<div class="row">
+								<div style="width:100%">
+										<section>
+											<form method="post" action="create">
+											<h2>Select which senators you want your friends to contact.</h2><br/>
+												{% csrf_token %}
+												{{ form.as_p }}
+												<p><input type="submit" value="Submit"></p>
+											</form>
+										</section>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
 
-<form method="post" action="create">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <p><input type="submit" value="Submit"></p>
-</form>
-
-</body>
-</html>
+{% include "halcyonic/footer.html" %}

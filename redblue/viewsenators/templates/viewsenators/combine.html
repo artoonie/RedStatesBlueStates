@@ -1,18 +1,22 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-
+{% include "halcyonic/header.html" %}
 {% load static %}
 <link rel="stylesheet" type="text/css" href="{% static 'viewsenators/style.css' %}">
-</head>
-<body>
 
+				<div id="content-wrapper">
+					<div id="content">
+						<div class="container">
+							<div class="row">
+								<div style="width:100%">
+										<section>
 <form method="post" action="combine">
     {% csrf_token %}
     {{ form.as_p }}
     <p><input type="submit" value="Submit"></p>
 </form>
-
-</body>
-</html>
+										</section>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+{% include "halcyonic/footer.html" %}
