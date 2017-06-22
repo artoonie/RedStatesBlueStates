@@ -1305,7 +1305,6 @@
 			#footer-wrapper {
 				padding: 45px 0 45px 0;
 				text-shadow: 1px 1px 1px white;
-				text-align: left;
 			}
 
 		/* Header */
@@ -1421,7 +1420,6 @@
 				color: #546b76;
 				text-shadow: 1px 1px 0px rgba(255, 255, 255, 0.5);
 			}
-
 				#footer h2 {
 					font-size: 1.25em;
 					color: #212f35;
@@ -1705,6 +1703,13 @@
 					font-size: 1.25em;
 					color: #212f35;
 					margin: 0 0 0.75em 0;
+				}
+
+				#footer h3 {
+					font-size: 1.10em;
+					font-weight: 350;
+					color: #212f35;
+					margin: -0.5em 0 -1.2em 0;
 				}
 
 				#footer a {
