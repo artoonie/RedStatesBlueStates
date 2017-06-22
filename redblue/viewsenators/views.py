@@ -95,7 +95,8 @@ def index(request):
         "bitmaskToColor": json.dumps(bitmaskToColor),
         "stateToBitmasks": stateToBitmask,
         "legendText": json.dumps(legendText),
-        "contactLists": contactLists
+        "contactLists": contactLists,
+        "twelveOverLenContactLists": int(12.0/len(contactLists))
     }
     return HttpResponse(template.render(context, request))
 
