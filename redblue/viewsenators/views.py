@@ -212,8 +212,8 @@ def populateSenators(request):
             assert numStates == 50
             return
 
-        import stateToFbCode
-        for line in stateToFbCode.mapping:
+        from .stateToFbCode import mapping
+        for line in mapping:
             abbrev = line[0]
             name = line[1]
             facebookId = line[2]
