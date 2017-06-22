@@ -15,7 +15,7 @@ from .forms import ChooseForm, CombineForm
 def index(request):
     def colorToD3(color):
         return "rgb(%d,%d,%d)" % (color.red*255, color.green*255, color.blue*255)
-    template = loader.get_template('viewsenators/index.html')
+    template = loader.get_template('halcyonic/index.html')
 
     if 'lists' in request.GET:
         clIds = str.split(str(request.GET['lists']), ',')
