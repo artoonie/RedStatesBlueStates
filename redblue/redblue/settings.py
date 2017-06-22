@@ -30,13 +30,15 @@ else:
     SECRET_KEY = os.environ['SECRET_KEY']
 
 
+stagingURL = "immense-refuge-56573.herokuapp.com"
 if DEBUG:
-    ALLOWED_HOSTS = ["0.0.0.0"]
+    ALLOWED_HOSTS = ["0.0.0.0",
+                     stagingURL]
 else:
     ALLOWED_HOSTS = ["redfriendsbluefriends.herokuapp.com",
                      "redfriendsbluefriends.com",
                      "www.redfriendsbluefriends.com",
-                     "immense-refuge-56573.herokuapp.com"]
+                     stagingURL]
 
 # Application definition
 
