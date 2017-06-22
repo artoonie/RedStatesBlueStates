@@ -35,7 +35,8 @@ if DEBUG:
 else:
     ALLOWED_HOSTS = ["redfriendsbluefriends.herokuapp.com",
                      "redfriendsbluefriends.com",
-                     "www.redfriendsbluefriends.com"]
+                     "www.redfriendsbluefriends.com",
+                     "immense-refuge-56573.herokuapp.com"]
 
 # Application definition
 
