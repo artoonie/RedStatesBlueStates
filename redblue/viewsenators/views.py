@@ -23,7 +23,9 @@ def index(request):
         clIds = [str(x) for x in clIds]
         contactLists = [get_object_or_404(ContactList, slug=x) for x in clIds]
     else:
-        # TODO is it okay to hardcode the first three rows?
+        contactLists = []
+        for party in Senator.PARTY_CHOICES:
+            contactLists.append(ContactList.objects.filter(title=party[1])[0])
         contactLists = ContactList.objects.order_by()[0:3]
     if len(contactLists) > 8:
         return debugWriteAnything("You can combine up to 8 lists at most")
