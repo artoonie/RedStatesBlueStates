@@ -25,14 +25,12 @@ function selectParty(partyIdList) {
 
 function toggleCheetsheet() {
     var currW = document.getElementById('cheatsheet').style.width
-    if(currW == "0%") {
+    if(currW == "0px") {
         document.getElementById('cheatsheet').style.display = "block";
-        document.getElementById('cheatsheet').style.width = "40%";
-        document.getElementById('mainform').style.width = "60%";
+        document.getElementById('cheatsheet').style.width = "300px";
     } else {
         document.getElementById('cheatsheet').style.display = "None";
-        document.getElementById('cheatsheet').style.width = "0%";
-        document.getElementById('mainform').style.width = "100%";
+        document.getElementById('cheatsheet').style.width = "0px";
     }
 }
 </script>
@@ -72,7 +70,7 @@ function toggleCheetsheet() {
 					<div id="content">
 						<div class="container">
 							<div class="row">
-								<div id="mainform" style="width:100%; min-width:250px">
+								<div id="mainform" style="width: 80%">
 										<section>
 											<form method="post" action="create">
 											<h2>Select which senators you want your friends to contact.</h2><br/>
@@ -82,8 +80,10 @@ function toggleCheetsheet() {
 											</form>
 										</section>
 								</div>
-								<div id="cheatsheet" style="width:0%; position: absolute; display:None; right: 0px">
+								<div id="cheatsheet" style="width:0; position: fixed; display:None; height: 100%; right: 5%; top: 0px; overflow:scroll;">
 									<section>
+										<a onClick="toggleCheetsheet()">[hide cheetsheet]</a>
+										<br/><br/>
 										{% load markdown_deux_tags %}
 										{% markdown_cheatsheet %}
 									</section>
