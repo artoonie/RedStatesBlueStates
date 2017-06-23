@@ -32,7 +32,7 @@ class ChooseForm(forms.ModelForm):
     description = forms.CharField(
         label="Description",
         label_suffix=mark_safe("<br/>"),
-        widget=forms.Textarea(attrs={"rows": 5}),
+        widget=forms.Textarea(attrs={"rows": 5, "cols": 20}),
         help_text="<br/>Call to action: what should people tell their friends "
                   "to tell their senators. Markdown allowed: **bold**, "
                   "[link](http://url).<br/>"
