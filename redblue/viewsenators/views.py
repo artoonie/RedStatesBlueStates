@@ -8,6 +8,7 @@ import requests
 
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect
+from django.shortcuts import get_object_or_404
 from django.template import loader
 from .models import State, Senator, ContactList
 from .forms import ChooseForm, CombineForm
@@ -20,7 +21,7 @@ def index(request):
     if 'lists' in request.GET:
         clIds = str.split(str(request.GET['lists']), ',')
         clIds = [str(x) for x in clIds]
-        contactLists = [ContactList.objects.get(uid=x) for x in clIds]
+        contactLists = [get_object_or_404(ContactList, slug=x) for x in clIds]
     else:
         # TODO is it okay to hardcode the first three rows?
         contactLists = ContactList.objects.order_by()[0:3]
@@ -110,9 +111,9 @@ def combineContactList(request):
         if form.is_valid():
             data = form.cleaned_data
             contactLists = data['contactLists']
-            uids = [ContactList.objects.get(id=c).uid.hex for c in contactLists]
-            uidStr = ','.join(uids)
-            return HttpResponseRedirect(reverse('index')+'?lists=' + uidStr)
+            slugs = [ContactList.objects.get(id=c).slug for c in contactLists]
+            slugStr = ','.join(slugs)
+            return HttpResponseRedirect(reverse('index')+'?lists=' + slugStr)
 
     # if a GET (or any other method) we'll create a blank form
     form = CombineForm()
@@ -134,7 +135,7 @@ def createContactList(request):
             description = data['description']
             senators = data['senators']
             cl = _makeContactList(title, description, senators)
-            return HttpResponseRedirect(reverse('index')+'?lists=' + cl.uid.hex)
+            return HttpResponseRedirect(reverse('index')+'?lists=' + cl.slug)
     # if a GET (or any other method) we'll create a blank form
     else:
         form = ChooseForm()
