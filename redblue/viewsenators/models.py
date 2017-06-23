@@ -42,7 +42,6 @@ class ContactList(models.Model):
 
             for x in itertools.count(1):
                 if not ContactList.objects.filter(slug=self.slug).exists():
-                    print "SLUG", self.slug
                     break
 
                 # Truncate the original slug dynamically. Minus 1 for the hyphen.
