@@ -26,7 +26,6 @@ def index(request):
         contactLists = []
         for party in Senator.PARTY_CHOICES:
             contactLists.append(ContactList.objects.filter(title=party[1])[0])
-        contactLists = ContactList.objects.order_by()[0:3]
     if len(contactLists) > 8:
         return debugWriteAnything("You can combine up to 8 lists at most")
 
