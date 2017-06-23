@@ -22,6 +22,19 @@ function selectParty(partyIdList) {
     checkboxes[i].checked = true;
   }
 }
+
+function toggleCheetsheet() {
+    var currW = document.getElementById('cheatsheet').style.width
+    if(currW == "0%") {
+        document.getElementById('cheatsheet').style.display = "block";
+        document.getElementById('cheatsheet').style.width = "30%";
+        document.getElementById('mainform').style.width = "70%";
+    } else {
+        document.getElementById('cheatsheet').style.display = "None";
+        document.getElementById('cheatsheet').style.width = "0%";
+        document.getElementById('mainform').style.width = "100%";
+    }
+}
 </script>
 
 			<!-- Features -->
@@ -59,7 +72,7 @@ function selectParty(partyIdList) {
 					<div id="content">
 						<div class="container">
 							<div class="row">
-								<div style="width:100%">
+								<div id="mainform" style="width:100%">
 										<section>
 											<form method="post" action="create">
 											<h2>Select which senators you want your friends to contact.</h2><br/>
@@ -68,6 +81,12 @@ function selectParty(partyIdList) {
 												<p><input type="submit" value="Submit"></p>
 											</form>
 										</section>
+								</div>
+								<div id="cheatsheet" style="width:0%; display:None;">
+									<section>
+										{% load markdown_deux_tags %}
+										{% markdown_cheatsheet %}
+									</section>
 								</div>
 							</div>
 						</div>

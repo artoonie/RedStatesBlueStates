@@ -23,8 +23,21 @@ class ChooseForm(forms.ModelForm):
         model = ContactList
         fields = ['title', 'description', 'public', 'senators']
 
-    #title = forms.CharField(label='Title', max_length=128)
-    #desc = forms.CharField(label='Description', max_length=1024)
+    title = forms.CharField(
+        label="Title",
+        help_text=mark_safe("<br/><em>Which senators are included in this list?</em>"),
+        label_suffix=mark_safe("<br/>"),
+        required=True)
+
+    description = forms.CharField(
+        label="Description",
+        label_suffix=mark_safe("<br/>"),
+        widget=forms.Textarea(attrs={"rows": 5}),
+        help_text="<br/>Call to action: what should people tell their friends "
+                  "to tell their senators. Markdown allowed: **bold**, "
+                  "[link](http://url).<br/>"
+                  "<a onClick=\"toggleCheetsheet()\">[markdown cheatsheet]</a>",
+        required=True)
     senators = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple,
         choices=getSenatorChoices)
 

@@ -27,6 +27,7 @@ $(document).ready(function(){
 
 </script>
 
+{% load markdown_deux_tags %}
 			<!-- Features -->
 				<div id="features-wrapper">
 					<div id="features">
@@ -38,7 +39,7 @@ $(document).ready(function(){
 											Click to search Facebook:<br>
 											<a href="{{ cl.fbUrl }}" id="href_{{ cl.id }}" name="party" class="button-big">{{ cl.title }}</a>
 											<p>
-												{{ cl.description }}
+												{{ cl.description|markdown }}
 											</p>
 										</section>
 								</div>
