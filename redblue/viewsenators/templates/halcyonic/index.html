@@ -72,6 +72,15 @@ http://www.d3noob.org/2013/01/adding-tooltips-to-d3js-graph.html
 Mike Bostock, Pie Chart Legend
 http://bl.ocks.org/mbostock/3888852  */
 
+
+function toggleLegend() {
+    var disp = document.getElementById('legend').style.display
+    if(disp == "none") {
+        document.getElementById('legend').style.display = "block";
+    } else {
+        document.getElementById('legend').style.display = "none";
+    }
+}
         
 //Width and height of map
 var width = 960;
@@ -151,8 +160,10 @@ var legend = d3.select("#mapdiv")
                  .attr("float", "right")
                  .append("svg")
                  .attr("class", "legend")
+                 .attr("id", "legend")
+                 .attr("style", "display: none")
                  .attr("width", 340)
-                 .attr("height", 200)
+                 .attr("height", 150)
                    .selectAll("g")
                    .data(d3.values(bitmaskToColor))
                    .enter()
@@ -172,7 +183,9 @@ var legend = d3.select("#mapdiv")
             .text(function(d) { return d; });
 });
 </script>
-										</div></section>
+										</div>
+										<a onClick="toggleLegend()">[toggle legend]</a>
+										</section>
 
 								</div>
 							</div>

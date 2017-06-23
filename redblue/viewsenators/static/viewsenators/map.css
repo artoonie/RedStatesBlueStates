@@ -42,15 +42,17 @@ a {
         
 /* Legend Position Style */
 .legend {
-    position:absolute;
-    right:-30%;
+    background-color: #fcfcfc;
+    border: solid 1px #51575a;
+    padding: 5px;
+    border-radius: 5px;
+    position: fixed;
+    right:0%;
     bottom:10%;
 }
 /* Desktop */
 @media screen and (min-width: 1201px) {
     .legend {
-        position:absolute;
-        right:-10%;
         bottom:10%;
     }
 
@@ -61,8 +63,6 @@ a {
 /* Tablet */
 @media screen and (min-width: 737px) and (max-width: 1200px) {
     .legend {
-        position:absolute;
-        right:-15%;
         bottom:10%;
     }
 
@@ -73,13 +73,11 @@ a {
 /* Mobile */
 @media screen and (max-width: 736px) {
     .legend {
-        position:absolute;
-        right:-20%;
-        bottom:-20%;
+        bottom:20%;
     }
 
     .mapsection {
-        padding-bottom: 80%; 
+        padding-bottom: 45%; 
     }
 }
 
@@ -95,5 +93,5 @@ a {
     display: inline-block;
     position: absolute;
     top: 10px;
-    left: 0;
+    right: 0;
 }
