@@ -7,10 +7,9 @@ def getContactListChoices():
         return mark_safe(
             "<strong><a href=\"%s\">%s</a></strong><br/>"\
             "<em>%s</em><br/><br/>"\
-            "Senators: %s<br/>"\
-            "Unique ID: %s<br/><br/><br/><br/>" % \
+            "Senators: %s<br/><br/><br/><br/>" % \
             (c.fbUrl, c.title, c.description,
-             ', '.join([s.lastName for s in c.senators.all()]), c.uid))
+             ', '.join([s.lastName for s in c.senators.all()])))
     return reversed([(s.id, c2t(s)) for s in ContactList.objects.filter(public=True)])
 
 def getSenatorChoices():
