@@ -33,6 +33,7 @@ else:
 stagingURL = "immense-refuge-56573.herokuapp.com"
 if DEBUG:
     ALLOWED_HOSTS = ["0.0.0.0",
+                     "localhost",
                      stagingURL]
 else:
     ALLOWED_HOSTS = ["redfriendsbluefriends.herokuapp.com",
