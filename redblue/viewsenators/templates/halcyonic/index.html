@@ -35,7 +35,7 @@ $(document).ready(function(){
 							<div class="row">
 {% for cl in contactLists %}
 								<div class="{{twelveOverLenContactLists}}u 12u(mobile)" align="center">
-										<section>
+										<section id="searchFacebook">
 											Click to search Facebook:<br>
 											<a href="{{ cl.fbUrl }}" id="href_{{ cl.id }}" name="party" class="button-big">{{ cl.title }}</a>
 											<p>
@@ -77,8 +77,10 @@ function toggleLegend() {
     var disp = document.getElementById('legend').style.display
     if(disp == "none") {
         document.getElementById('legend').style.display = "block";
+        document.getElementById('toggleLegendLink').text = "[hide legend]";
     } else {
         document.getElementById('legend').style.display = "none";
+        document.getElementById('toggleLegendLink').text = "[show legend]";
     }
 }
         
@@ -90,7 +92,7 @@ var height = 500;
 var projection = d3.geo.albersUsa()
                    .translate([width/2, height/2])    // translate to center of screen
                    .scale([1000]);          // scale things down so see entire US
-        
+
 // Define path generator
 var path = d3.geo.path()               // path generator that will convert GeoJSON to SVG paths
                .projection(projection);  // tell path generator to use albersUsa projection
@@ -110,7 +112,6 @@ var svg = d3.select("#mapdiv")
             .attr("preserveAspectRatio", "xMinYMin meet")
             .attr("viewBox", "0 0 960 500")
             .classed("svg-content-responsive", true); 
-
         
 // Append Div for tooltip to SVG
 var div = d3.select("#mapdiv")
@@ -154,16 +155,17 @@ svg.selectAll("path")
     .style("stroke-width", "1")
     .style("fill", function(d) { return bitmaskToColor[d.properties.colorBitmask]; });
 
+
+
 // Modified Legend Code from Mike Bostock: http://bl.ocks.org/mbostock/3888852
 var legend = d3.select("#mapdiv")
                  .append("div")
-                 .attr("float", "right")
                  .append("svg")
                  .attr("class", "legend")
                  .attr("id", "legend")
                  .attr("style", "display: none")
-                 .attr("width", 340)
-                 .attr("height", 150)
+                 .attr("width", "100%")
+                 .attr("height", function() { return 15 + d3.values(bitmaskToColor).length * 25 })
                    .selectAll("g")
                    .data(d3.values(bitmaskToColor))
                    .enter()
@@ -184,7 +186,9 @@ var legend = d3.select("#mapdiv")
 });
 </script>
 										</div>
-										<a onClick="toggleLegend()">[toggle legend]</a>
+										<div class="toggleLegendLinkContainer">
+										<a onClick="toggleLegend()" id="toggleLegendLink">[show legend]</a>
+										</div>
 										</section>
 
 								</div>

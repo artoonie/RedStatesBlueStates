@@ -6,12 +6,14 @@
 					<div id="content">
 						<div class="container">
 							<div class="row">
-								<div style="width:100%">
+								<div id="mainform" style="width: 100%">
 										<section>
+<h2>Calls to Action</h2>
+<h3>Tip: You can also combine several calls to action to share them together</h3>
 <form method="post" action="combine">
     {% csrf_token %}
     {{ form.as_p }}
-    <p><input type="submit" value="Submit"></p>
+    <p><input type="submit" value="Combine checked calls to action"></p>
 </form>
 										</section>
 								</div>

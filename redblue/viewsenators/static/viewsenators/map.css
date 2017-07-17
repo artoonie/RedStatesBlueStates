@@ -46,10 +46,9 @@ a {
     border: solid 1px #51575a;
     padding: 5px;
     border-radius: 5px;
-    position: fixed;
-    right:0%;
-    bottom:10%;
+    position: relative;
 }
+
 /* Desktop */
 @media screen and (min-width: 1201px) {
     .legend {
@@ -66,6 +65,10 @@ a {
         bottom:10%;
     }
 
+    .toggleLegendLinkContainer {
+        margin-top: 25px;
+    }
+
     .mapsection {
         padding-bottom: 50%; 
     }
@@ -74,6 +77,10 @@ a {
 @media screen and (max-width: 736px) {
     .legend {
         bottom:20%;
+    }
+
+    .toggleLegendLinkContainer {
+        margin-top: 15px;
     }
 
     .mapsection {
