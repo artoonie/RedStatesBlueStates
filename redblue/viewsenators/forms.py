@@ -41,6 +41,7 @@ class ChooseForm(forms.ModelForm):
         label = "Make public?",
         label_suffix = "",
         required = False,
+        initial = 1,
         help_text="<br/>If checked, this will show up in \"View public calls to actions\" <br/><br/>")
 
     senators = forms.MultipleChoiceField(
