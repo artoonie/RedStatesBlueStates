@@ -5,12 +5,11 @@ from .models import Senator, ContactList
 def getContactListChoices():
     def c2t(c):
         return mark_safe(
-            "<strong><a href=\"%s\">%s</a></strong><br/>"\
-            "<em>%s</em><br/><br/>"\
-            "Senators: %s<br/>"\
-            "Unique ID: %s<br/><br/><br/><br/>" % \
-            (c.fbUrl, c.title, c.description,
-             ', '.join([s.lastName for s in c.senators.all()]), c.uid))
+            "<strong><a href=\"./?lists=%s\">%s</a></strong><br/>"\
+            "<em>%s</em><br/>"\
+            "Senators: %s<br/><br/>" % \
+            (c.slug, c.title, c.description,
+             ', '.join([s.lastName for s in c.senators.all()])))
     return reversed([(s.id, c2t(s)) for s in ContactList.objects.filter(public=True)])
 
 def getSenatorChoices():
@@ -24,24 +23,32 @@ class ChooseForm(forms.ModelForm):
         fields = ['title', 'description', 'public', 'senators']
 
     title = forms.CharField(
-        label="Title",
-        help_text=mark_safe("<br/><em>Which senators are included in this list?</em>"),
+        label="Name your Call to Action",
+        help_text=mark_safe("<br/><em>Briefly describe the cause. For example: \"Fight the AHCA\"</em><br/><br/>"),
         label_suffix=mark_safe("<br/>"),
         required=True)
 
     description = forms.CharField(
-        label="Description",
+        label="Longer description and call script",
         label_suffix=mark_safe("<br/>"),
         widget=forms.Textarea(attrs={"rows": 5, "cols": 35}),
-        help_text="<br/>Call to action: what should people tell their friends "
-                  "to tell their senators. Markdown allowed: **bold**, "
-                  "[link](http://url).<br/>"
-                  "<a onClick=\"toggleCheetsheet()\">[markdown cheatsheet]</a>",
+        help_text="<br/>What should people tell their friends "
+                  "to tell their senators. Markdown allowed. "
+                  "<a onClick=\"toggleCheetsheet()\">[markdown cheatsheet]</a><br/><br/>",
         required=True)
-    senators = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple,
-        choices=getSenatorChoices)
+
+    public = forms.BooleanField(
+        label = "Make public?",
+        label_suffix = "",
+        required = False,
+        initial = 1,
+        help_text="<br/>If checked, this will show up in \"View public calls to actions\" <br/><br/>")
+
+    senators = forms.MultipleChoiceField(
+        widget  = forms.CheckboxSelectMultiple,
+        choices = getSenatorChoices)
 
 class CombineForm(forms.Form):
     contactLists = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple,
         choices=getContactListChoices,
-        label = "Choose which lists of senators to combine onto one map")
+        label = "")

@@ -70,13 +70,14 @@ function toggleCheetsheet() {
 					<div id="content">
 						<div class="container">
 							<div class="row">
-								<div id="mainform" style="width: 80%">
+								<div id="mainform" style="width: 100%">
 										<section>
 											<form method="post" action="create">
-											<h2>Select which senators you want your friends to contact.</h2><br/>
+											<h2>Select the senators that could swing the vote for your cause.</h2><br/>
+											<h3>This will generate a Call to Action so fellow activists can find their Facebook friends in swing states.</h3><br/>
 												{% csrf_token %}
 												{{ form.as_p }}
-												<p><input type="submit" value="Submit"></p>
+												<p><input type="submit" value="Create"></p>
 											</form>
 										</section>
 								</div>

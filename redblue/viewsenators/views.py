@@ -135,7 +135,8 @@ def createContactList(request):
             title = data['title']
             description = data['description']
             senators = data['senators']
-            cl = _makeContactList(title, description, senators)
+            public = data['public']
+            cl = _makeContactList(title, description, senators, public)
             return HttpResponseRedirect(reverse('index')+'?lists=' + cl.slug)
     # if a GET (or any other method) we'll create a blank form
     else:
@@ -161,7 +162,7 @@ def debugWriteAnything(text):
     response.write(text)
     return response
 
-def _makeContactList(title, description, senatorList):
+def _makeContactList(title, description, senatorList, public):
     def _senatorListToFbCode(senators):
         setOfStates = set([s.state for s in senators])
         url = "https://www.facebook.com/search/"
@@ -173,7 +174,8 @@ def _makeContactList(title, description, senatorList):
 
     cl = ContactList.objects.create(
             title = title,
-            description = description)
+            description = description,
+            public = public)
     cl.senators = senatorList
     cl.fbUrl = _senatorListToFbCode(cl.senators.all())
     cl.save()
@@ -235,7 +237,7 @@ def populateSenators(request):
                 desc = party[1]
             description = "All " + desc + " senators"
             senators = Senator.objects.filter(party=party[0])
-            _makeContactList(title, description, senators)
+            _makeContactList(title, description, senators, public=True)
 
     #if not State.objects.count() == 0:
     #    return debugWriteAnything("Already initialized.")
