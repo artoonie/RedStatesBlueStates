@@ -24,8 +24,12 @@ def index(request):
         contactLists = [get_object_or_404(ContactList, slug=x) for x in clIds]
     else:
         contactLists = []
-        for party in Senator.PARTY_CHOICES:
-            contactLists.append(ContactList.objects.filter(title=party[1])[0])
+        try:
+            trumpcare = ContactList.objects.get(slug='75ba0d523963492093a3badbd1306b49')
+            contactLists.append(trumpcare)
+        except ContactList.DoesNotExist:
+            for party in Senator.PARTY_CHOICES:
+                contactLists.append(ContactList.objects.filter(title=party[1])[0])
     if len(contactLists) > 8:
         return debugWriteAnything("You can combine up to 8 lists at most")
 
