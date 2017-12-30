@@ -16,7 +16,7 @@ function restoreColors() {
     $( "path[colorBitmask='0']" ).css('fill', '#000' );
 }
 
-{% for cl in contactLists %}
+{% for cl, url in contactLists %}
 $(document).ready(function(){
     $( "a[id='href_{{cl.id}}']" ).mouseenter(function(){setColor({{forloop.counter0}})});
 });
@@ -33,11 +33,11 @@ $(document).ready(function(){
 					<div id="features">
 						<div class="container">
 							<div class="row">
-{% for cl in contactLists %}
+{% for cl, url in contactLists %}
 								<div class="{{twelveOverLenContactLists}}u 12u(mobile)" align="center">
 										<section id="searchFacebook">
 											Click to search Facebook:<br>
-											<a href="{{ cl.fbUrl }}" id="href_{{ cl.id }}" name="party" class="button-big">{{ cl.title }}</a>
+											<a href="{{ url }}" id="href_{{ cl.id }}" name="party" class="button-big">{{ cl.title }}</a>
 											<p>
 												{{ cl.description|markdown }}
 											</p>
