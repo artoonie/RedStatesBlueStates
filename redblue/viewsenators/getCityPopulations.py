@@ -17,7 +17,7 @@ def getCityPopulations(minPopulation = 2500):
         csvURL = "http://mcdc.missouri.edu/data/popests/archives/rawdata/SUB-EST2016_ALL.csv"
 
         response = requests.get(csvURL)
-        content = response.content.decode('latin1').encode('utf-8')
+        content = response.text
 
     populationDataByState = {}
     cr = csv.reader(content.splitlines(), delimiter=',')
@@ -30,7 +30,7 @@ def getCityPopulations(minPopulation = 2500):
     for row in cr:
         cityName = row[8]
         stateName = row[9]
-        population = row[18]
+        population = int(row[18])
 
         if population < minPopulation:
             continue
