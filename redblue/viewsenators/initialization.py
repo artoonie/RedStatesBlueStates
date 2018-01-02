@@ -47,6 +47,9 @@ def populateCities(fixMode=False, progressBar = False):
         assert numCities > 18000
         return
 
+    if progressBar:
+        yield "Beginning progress bar..."
+
     populationDataByState = getCityPopulations()
 
     from .cityToFbCode import mapping
