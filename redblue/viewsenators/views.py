@@ -5,7 +5,7 @@ from colour import Color
 import json
 
 from django.core.urlresolvers import reverse
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, StreamingHttpResponse
 from django.shortcuts import get_object_or_404
 from django.template import loader
 from .models import Party, City, Senator, ContactList
@@ -216,5 +216,8 @@ def populateSenators(request):
     return debugWriteAnything("The list of senators: <br>" + senText)
 
 def fixCities(request):
-    updateCitiesWithCurrentData()
-    return debugWriteAnything("Cities fixed!")
+    # This can take more than 30 seconds, so we need a streaming response
+    # for Heroku to not shut it down
+    # This is only run once by the admin, so the decreased performance
+    # shouldn't matter.
+    return StreamingHttpResponse(updateCitiesWithCurrentData())

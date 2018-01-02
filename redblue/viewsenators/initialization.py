@@ -35,7 +35,7 @@ def populateStates():
                              abbrev=abbrev,
                              facebookId=facebookId)
 
-def populateCities(fixMode=False):
+def populateCities(fixMode=False, progressBar = False):
     """ Populate the list of cities and their facebook codes.
         fixMode: Will create any new cities not in the database,
             and update any facebook codes and populations of existing cities.
@@ -50,7 +50,7 @@ def populateCities(fixMode=False):
     populationDataByState = getCityPopulations()
 
     from .cityToFbCode import mapping
-    for line in mapping:
+    for i, line in enumerate(mapping):
         city = line[0]
         stateAbbrev = line[1]
         facebookId = line[2]
@@ -67,6 +67,10 @@ def populateCities(fixMode=False):
             population = 0
         else:
             population = populationDataByState[stateName][city]
+
+        if progressBar and i % 1000 == 0:
+            # A bit of a hack to overcome the heroku timeout
+            yield "%d/%d<br>" % (i, len(mapping))
 
         if fixMode:
             try:
@@ -86,7 +90,8 @@ def populateCities(fixMode=False):
                             population=population)
 
 def updateCitiesWithCurrentData():
-    populateCities(fixMode = True)
+    for x in populateCities(fixMode = True, progressBar = True):
+        yield x
 
 def populateAllData():
     def _populateSenatorsWith(data):

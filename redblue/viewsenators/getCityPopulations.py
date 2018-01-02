@@ -17,11 +17,11 @@ def getCityPopulations(minPopulation = 2500):
         csvURL = "http://mcdc.missouri.edu/data/popests/archives/rawdata/SUB-EST2016_ALL.csv"
 
         response = requests.get(csvURL)
-        content = response.text
+        content = response.content.decode('latin1').encode('utf-8')
 
     populationDataByState = {}
     cr = csv.reader(content.splitlines(), delimiter=',')
-    firstRow = next(cr) # python2 is cr.next()
+    firstRow = cr.next()
 
     assert firstRow[8] == "NAME"
     assert firstRow[9] == "STNAME"
