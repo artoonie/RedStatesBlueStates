@@ -74,6 +74,12 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='viewsenators.Party'),
         ),
 
+        # Generate the contactList on the fly instead
+        migrations.RemoveField(
+            model_name='ContactList',
+            name='fbUrl',
+        ),
+
         # move "party" to "party_old", create a new field, run code to convert,
         # then delete "party_old"
         migrations.RunPython(populateParties, reverse_code=unpopulateParties),

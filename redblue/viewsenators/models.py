@@ -40,7 +40,6 @@ class ContactList(models.Model):
     title = models.CharField(max_length=128)
     description = models.CharField(max_length=1024)
     senators = models.ManyToManyField(Senator)
-    fbUrl = models.CharField(max_length=4096)
     uid = models.UUIDField(primary_key=False, default=uuid.uuid4,
                            editable=False, max_length=16)
     slug = models.SlugField(unique=True, editable=False)

@@ -84,11 +84,10 @@ def populateCities(fixMode=False):
                             facebookId=facebookId,
                             population=population)
 
-def fixCities():
+def updateCitiesWithCurrentData():
     populateCities(fixMode = True)
 
-def initialize():
-    """ Populate the list of senators using the ProPublica API """
+def populateAllData():
     def _populateSenatorsWith(data):
         """ Populate the list of senators with a propublica dictionary """
         numSenators = len(Senator.objects.all())

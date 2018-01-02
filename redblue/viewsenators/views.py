@@ -10,7 +10,7 @@ from django.shortcuts import get_object_or_404
 from django.template import loader
 from .models import Party, City, Senator, ContactList
 from .forms import ChooseForm, CombineForm
-import initialization
+from .initialization import populateAllData, updateCitiesWithCurrentData
 
 NUM_CITIES_PER_QUERY = 60 # This seems to be the most that Facebook will allow.
 
@@ -186,7 +186,6 @@ def _makeContactList(title, description, senatorList, public):
             description = description,
             public = public)
     cl.senators = senatorList
-    cl.fbUrl = _senatorListToFbCode(cl.senators.all())
     cl.save()
     return cl
 
@@ -201,7 +200,7 @@ def populateSenators(request):
             senators = Senator.objects.filter(party=party)
             _makeContactList(title, description, senators, public=True)
 
-    initialization.initialize()
+    populateAllData()
     _createInitialLists()
 
     senators = Senator.objects.all()
@@ -211,5 +210,5 @@ def populateSenators(request):
     return debugWriteAnything("The list of senators: <br>" + senText)
 
 def fixCities(request):
-    initialization.fixCities()
+    updateCitiesWithCurrentData()
     return debugWriteAnything("Cities fixed!")
