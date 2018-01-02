@@ -35,11 +35,15 @@ def populateStates():
                              abbrev=abbrev,
                              facebookId=facebookId)
 
-def populateCities(fixMode=False, progressBar = False):
+def populateCities(fixMode=False, verboseYield = False):
     """ Populate the list of cities and their facebook codes.
-        fixMode: Will create any new cities not in the database,
+        :param fixMode: Will create any new cities not in the database,
             and update any facebook codes and populations of existing cities.
-            Will not delete cities, """
+            Will not delete cities,
+        :param verboseYield: To overcome heroku timeouts, will yield
+            progress strings.
+
+    """
     # For now, never overwrite
     numCities = len(City.objects.all())
     if not fixMode and len(City.objects.all()) != 0:
@@ -47,12 +51,12 @@ def populateCities(fixMode=False, progressBar = False):
         assert numCities > 18000
         return
 
-    if progressBar:
+    if verboseYield:
         yield "Beginning downlod.<br>"
 
     populationDataByState = getCityPopulations()
 
-    if progressBar:
+    if verboseYield:
         yield "Completed download. Processing.<br>"
 
     from .cityToFbCode import mapping
@@ -61,14 +65,15 @@ def populateCities(fixMode=False, progressBar = False):
         stateAbbrev = line[1]
         facebookId = line[2]
 
-        if progressBar:
-            # A bit of a hack to overcome the heroku timeout
+        if verboseYield and i % 1000 == 0:
             yield "%d/%d<br>" % (i, len(mapping))
 
         try:
             state = State.objects.get(abbrev=stateAbbrev)
         except State.DoesNotExist:
             # Puerto Rico & other territories
+            if verboseYield:
+                yield "Skipping" + stateAbbrev
             continue
 
         stateName = state.name
@@ -96,7 +101,7 @@ def populateCities(fixMode=False, progressBar = False):
                             population=population)
 
 def updateCitiesWithCurrentData():
-    for x in populateCities(fixMode = True, progressBar = True):
+    for x in populateCities(fixMode = True, verboseYield = True):
         yield x
 
 def populateAllData():
