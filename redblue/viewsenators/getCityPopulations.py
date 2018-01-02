@@ -16,7 +16,8 @@ def getCityPopulations(minPopulation = 2500):
         # csvURL = "https://www2.census.gov/programs-surveys/popest/datasets/2010-2016/cities/totals/sub-est2016_all.csv"
         csvURL = "http://mcdc.missouri.edu/data/popests/archives/rawdata/SUB-EST2016_ALL.csv"
 
-        content = requests.get(csvURL).text
+        response = requests.get(csvURL)
+        content = response.content.decode('latin1').encode('utf-8')
 
     populationDataByState = {}
     cr = csv.reader(content.splitlines(), delimiter=',')
@@ -46,3 +47,5 @@ def getCityPopulations(minPopulation = 2500):
         populationDataByState[stateName][cityName] = int(population)
     return populationDataByState
 
+if __name__ == "__main__":
+    getCityPopulations()
