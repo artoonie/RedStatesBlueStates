@@ -12,7 +12,7 @@ from .models import Party, City, Senator, ContactList
 from .forms import ChooseForm, CombineForm
 import initialization
 
-NUM_CITIES_PER_QUERY = 70
+NUM_CITIES_PER_QUERY = 60 # This seems to be the most that Facebook will allow.
 
 def index(request):
     def colorToD3(color):
