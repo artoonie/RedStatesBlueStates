@@ -21,7 +21,7 @@ def getCityPopulations(minPopulation = 2500):
 
     populationDataByState = {}
     cr = csv.reader(content.splitlines(), delimiter=',')
-    firstRow = cr.next()
+    firstRow = next(cr) # python2 is cr.next()
 
     assert firstRow[8] == "NAME"
     assert firstRow[9] == "STNAME"
