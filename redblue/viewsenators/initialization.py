@@ -74,7 +74,7 @@ def populateCities(fixMode=False, progressBar = False):
         else:
             population = populationDataByState[stateName][city]
 
-        if progressBar and i % 1000 == 0:
+        if progressBar:
             # A bit of a hack to overcome the heroku timeout
             yield "%d/%d<br>" % (i, len(mapping))
 
