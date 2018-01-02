@@ -1,4 +1,3 @@
-import csv
 import os
 import pickle
 import progressbar
@@ -13,18 +12,24 @@ from googleSearcher import GoogleSearcher, TimeoutError
 
 sys.path.append("../redblue/viewsenators")
 from getCityPopulations import getCityPopulations
+from stateToFbCode import mapping
 
-FILENAME = "searches.csv"
 PICKLE_FILENAME = "codes.pickle"
 
 # Parse CSV for cities/states
 def readAllCities():
+    stateNameToAbbrev = {}
+    for row in mapping:
+        stateNameToAbbrev[row[1]] = row[0]
+
     populations = getCityPopulations()
     statesToCitiesList = {}
     for state in populations:
-        statesToCitiesList[state] = []
+        if state not in stateNameToAbbrev: continue
+        stateAbbrev = stateNameToAbbrev[state]
+        statesToCitiesList[stateAbbrev] = []
         for city in populations[state]:
-            statesToCitiesList[state].append(city)
+            statesToCitiesList[stateAbbrev].append(city)
     return statesToCitiesList
 
 def countCities(statesToCitiesList):
@@ -61,6 +66,7 @@ def searchGoogleSmart(statesToCitiesList):
         shutil.copy2(fp, fp + "_backup_" + str(count))
 
         results = pickle.load(open(fp, "rb"))
+        print "Preloaded", len(results), "cities."
     else:
         results = {}
 
@@ -118,31 +124,6 @@ def runSearchesOn(statesToCitiesList, queries, results):
             return
 
     return True
-
-def parseOldStyleCSVForCode():
-    data = {}
-    urlRegex = getRegex()
-    with open(FILENAME, 'r') as fo:
-        reader = csv.reader(fo, delimiter='\t')
-        next(reader) # skip first row
-        for row in reader:
-            query = row[0]
-            code = None
-            for url in row[1:]:
-                matches = re.search(urlRegex, url)
-                if matches:
-                    code = matches.group(1)
-                    break
-            if code:
-                data[query] = code
-    return data
-
-# This parses old-style CSVs for the code, where it exists
-# Be careful uncommenting it - it'll overwrite PICKLE_FILENAME
-#data = parseOldStyleCSVForCode()
-#pickle.dump(data, open(PICKLE_FILENAME, "wb"))
-#for term in data:
-#    print term, ":", data[term]
 
 if __name__ == "__main__":
     statesToCitiesList = readAllCities()
