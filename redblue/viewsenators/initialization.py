@@ -66,7 +66,7 @@ def populateCities(fixMode=False, verboseYield = False):
         facebookId = line[2]
 
         if verboseYield and i % 1000 == 0:
-            yield "%d/%d<br>" % (i, len(mapping))
+            yield "%d/%d<br>" % (i+1, len(mapping))
 
         try:
             state = State.objects.get(abbrev=stateAbbrev)
