@@ -91,7 +91,7 @@ class Migration(migrations.Migration):
         migrations.AlterField( # make it not nullable anymore
             model_name='senator',
             name='party',
-            field=models.ForeignKey(null=True,on_delete=django.db.models.deletion.CASCADE, to='viewsenators.Party'),
+            field=models.ForeignKey(null=False,on_delete=django.db.models.deletion.CASCADE, to='viewsenators.Party'),
         ),
         migrations.AlterField( # make nullable so it can be reversed
             model_name='senator',
