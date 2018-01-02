@@ -61,6 +61,10 @@ def populateCities(fixMode=False, progressBar = False):
         stateAbbrev = line[1]
         facebookId = line[2]
 
+        if progressBar:
+            # A bit of a hack to overcome the heroku timeout
+            yield "%d/%d<br>" % (i, len(mapping))
+
         try:
             state = State.objects.get(abbrev=stateAbbrev)
         except State.DoesNotExist:
@@ -73,10 +77,6 @@ def populateCities(fixMode=False, progressBar = False):
             population = 0
         else:
             population = populationDataByState[stateName][city]
-
-        if progressBar:
-            # A bit of a hack to overcome the heroku timeout
-            yield "%d/%d<br>" % (i, len(mapping))
 
         if fixMode:
             try:
