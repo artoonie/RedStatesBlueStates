@@ -48,9 +48,12 @@ def populateCities(fixMode=False, progressBar = False):
         return
 
     if progressBar:
-        yield "Beginning progress bar..."
+        yield "Beginning downlod.<br>"
 
     populationDataByState = getCityPopulations()
+
+    if progressBar:
+        yield "Completed download. Processing.<br>"
 
     from .cityToFbCode import mapping
     for i, line in enumerate(mapping):
