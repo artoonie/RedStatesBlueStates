@@ -43,7 +43,8 @@ def populateCities(fixMode=False):
     # For now, never overwrite
     numCities = len(City.objects.all())
     if not fixMode and len(City.objects.all()) != 0:
-        assert numCities > 1000 # TODO get the final number
+        # sanity check to make sure it didn't crash on a previous run
+        assert numCities > 18000
         return
 
     populationDataByState = getCityPopulations()
@@ -105,11 +106,8 @@ def populateAllData():
         assert result['offset'] == 0
 
         for member in result['members']:
+            assert isinstance(member['in_office'], bool) # was once a string
             if member['in_office'] == False: continue
-
-            # Safety check...could be "chicken" instead? (or a type change -
-            # this has changed from str to bool before)
-            assert member['in_office'] == True
 
             state = State.objects.get(abbrev=member['state'])
             party = Party.objects.get(abbrev=member['party'])
@@ -117,9 +115,6 @@ def populateAllData():
                                    lastName = member['last_name'],
                                    party = party,
                                    state = state)
-
-    #if not State.objects.count() == 0:
-    #    return debugWriteAnything("Already initialized.")
 
     url = 'https://api.propublica.org/congress/v1/115/senate/members.json'
     apiKey = os.environ['PROPUBLICA_API_KEY']

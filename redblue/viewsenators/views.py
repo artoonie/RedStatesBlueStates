@@ -172,11 +172,17 @@ def debugWriteAnything(text):
     return response
 
 def _senatorListToFbCode(senators):
+    # While there are many better URL constructions that ideally start with
+    # your friends, rather than start with all FB users in each city then
+    # intersect that with your friends list, this is the only way I could get it
+    # to work.
+    # In particular, facebook seems to limit the number of unions to six,
+    # whereas the number of intersections can be ten times that.
     setOfStates = set([s.state for s in senators])
     setOfCities = City.objects.filter(state__in=setOfStates).order_by('-population')[:NUM_CITIES_PER_QUERY]
     url = "https://www.facebook.com/search/"
     for city in setOfCities:
-        url += city.facebookId + "/residents/"
+        url += city.facebookId + "/residents/present/"
     url += "union/me/friends/intersect/"
     return url
 
