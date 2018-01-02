@@ -65,7 +65,7 @@ def populateCities(fixMode=False, verboseYield = False):
         stateAbbrev = line[1]
         facebookId = line[2]
 
-        if verboseYield and i % 1000 == 0:
+        if verboseYield and i % 100 == 0:
             yield "%d/%d<br>" % (i+1, len(mapping))
 
         try:
@@ -73,7 +73,7 @@ def populateCities(fixMode=False, verboseYield = False):
         except State.DoesNotExist:
             # Puerto Rico & other territories
             if verboseYield:
-                yield "Skipping" + stateAbbrev
+                yield "Skipping non-state: " + stateAbbrev + "<br>"
             continue
 
         stateName = state.name
