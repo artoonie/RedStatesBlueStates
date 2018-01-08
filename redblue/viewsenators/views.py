@@ -4,13 +4,16 @@ from __future__ import unicode_literals
 from colour import Color
 import json
 
+from django.contrib.auth.decorators import user_passes_test
 from django.core.urlresolvers import reverse
+from django.db.models import Sum
 from django.http import HttpResponse, HttpResponseRedirect, StreamingHttpResponse
 from django.shortcuts import get_object_or_404
 from django.template import loader
 from .models import Party, City, Senator, ContactList
 from .forms import ChooseForm, CombineForm
-from .initialization import populateAllData, updateCitiesWithCurrentData
+from .getPopulations import getCityStatePopulations
+import initialization
 
 # This seems to be the most that Facebook will allow, though it varies over time
 NUM_CITIES_PER_QUERY = 50
@@ -102,13 +105,14 @@ def index(request):
     for c in bitmaskToColor:
         bitmaskToColor[c] = colorToD3(bitmaskToColor[c])
 
-    urls = [_senatorListToFbCode(cl.senators.all()) for cl in contactLists]
+    urlPopData = [_senatorListToFbCode(cl.senators.all())
+                     for cl in contactLists]
     context = {
         "bitmaskToColor": json.dumps(bitmaskToColor),
         "stateToBitmasks": stateToBitmask,
         "legendText": json.dumps(legendText),
-        "contactLists": zip(contactLists, urls),
-        "twelveOverLenContactLists": int(12.0/len(contactLists))
+        "contactListData": zip(contactLists, urlPopData),
+        "twelveOverLenContactLists": int(12.0/len(contactLists)),
     }
     return HttpResponse(template.render(context, request))
 
@@ -173,19 +177,29 @@ def debugWriteAnything(text):
     return response
 
 def _senatorListToFbCode(senators):
+    """ :return: the URL and the percentage of the population of the
+        desired states which will be found via that URL """
     # While there are many better URL constructions that ideally start with
     # your friends, rather than start with all FB users in each city then
     # intersect that with your friends list, this is the only way I could get it
     # to work.
     # In particular, facebook seems to limit the number of unions to six,
     # whereas the number of intersections can be ten times that.
-    setOfStates = set([s.state for s in senators])
+    setOfStates = senators.values('state')
     setOfCities = City.objects.filter(state__in=setOfStates).order_by('-population')[:NUM_CITIES_PER_QUERY]
     url = "https://www.facebook.com/search/"
     for city in setOfCities:
         url += city.facebookId + "/residents/present/"
     url += "union/me/friends/intersect/"
-    return url
+
+    # % of population in this search
+    cityPop = setOfCities.aggregate(Sum('population'))['population__sum']
+    statePop = setOfStates.aggregate(Sum('state__population'))['state__population__sum']
+    percentPopIncludedInURL = float(cityPop) / float(statePop)
+    percentPopIncludedInURL = int(100*percentPopIncludedInURL+0.5)
+
+    return {'url': url,
+            'percentPopIncludedInURL': percentPopIncludedInURL}
 
 def _makeContactList(title, description, senatorList, public):
     cl = ContactList.objects.create(
@@ -196,6 +210,7 @@ def _makeContactList(title, description, senatorList, public):
     cl.save()
     return cl
 
+@user_passes_test(lambda u: u.is_superuser)
 def populateSenators(request):
     def _createInitialLists():
         assert ContactList.objects.count() == 0
@@ -207,7 +222,7 @@ def populateSenators(request):
             senators = Senator.objects.filter(party=party)
             _makeContactList(title, description, senators, public=True)
 
-    populateAllData()
+    initialization.populateAllData()
     _createInitialLists()
 
     senators = Senator.objects.all()
@@ -216,9 +231,15 @@ def populateSenators(request):
 
     return debugWriteAnything("The list of senators: <br>" + senText)
 
-def fixCities(request):
+@user_passes_test(lambda u: u.is_superuser)
+def updateCitiesAndStatesWithLatestData(request):
     # This can take more than 30 seconds, so we need a streaming response
     # for Heroku to not shut it down
     # This is only run once by the admin, so the decreased performance
     # shouldn't matter.
-    return StreamingHttpResponse(updateCitiesWithCurrentData())
+    def runner():
+        cityPopulations, statePopulations = getCityStatePopulations()
+        for x in initialization.updateCitiesWithCurrentData(cityPopulations):
+            yield x
+        yield initialization.addPopulationToStates(statePopulations)
+    return StreamingHttpResponse(runner())

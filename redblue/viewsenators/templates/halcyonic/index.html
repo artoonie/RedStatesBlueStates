@@ -16,7 +16,7 @@ function restoreColors() {
     $( "path[colorBitmask='0']" ).css('fill', '#000' );
 }
 
-{% for cl, url in contactLists %}
+{% for cl, urlData in contactListData %}
 $(document).ready(function(){
     $( "a[id='href_{{cl.id}}']" ).mouseenter(function(){setColor({{forloop.counter0}})});
 });
@@ -33,11 +33,14 @@ $(document).ready(function(){
 					<div id="features">
 						<div class="container">
 							<div class="row">
-{% for cl, url in contactLists %}
+{% for cl, urlData in contactListData %}
 								<div class="{{twelveOverLenContactLists}}u 12u(mobile)" align="center">
 										<section id="searchFacebook">
 											Click to search Facebook:<br>
-											<a href="{{ url }}" id="href_{{ cl.id }}" name="party" class="button-big">{{ cl.title }}</a>
+											<a href="{{ urlData.url }}" id="href_{{ cl.id }}" name="party" class="button-big">{{ cl.title }}</a>
+											<p>
+												This link will find {{ urlData.percentPopIncludedInURL }}% of your friends in the highlighted states.
+											</p>
 											<p>
 												{{ cl.description|markdown }}
 											</p>

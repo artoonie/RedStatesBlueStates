@@ -17,6 +17,7 @@ class State(models.Model):
     name = models.CharField(max_length=16)
     abbrev = models.CharField(max_length=2)
     facebookId = models.CharField(max_length=15)
+    population = models.PositiveIntegerField(default=0)
 
 class City(models.Model):
     name = models.CharField(max_length=64) # largest city name is 57 chars

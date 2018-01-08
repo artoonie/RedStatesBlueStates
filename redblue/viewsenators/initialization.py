@@ -1,7 +1,9 @@
 import os
 import requests
+import cityToFbCode
+import stateToFbCode
 from .models import Party, City, State, Senator
-from .getCityPopulations import getCityPopulations
+from .getPopulations import getCityStatePopulations
 
 def populateParties(partyModel, partyObjects):
     """ Takes in partyObjects instead of using the Party.objects.all() so it
@@ -17,7 +19,7 @@ def populateParties(partyModel, partyObjects):
         partyModel(name="Independent", abbrev="I", adjective="Independent")
     ])
 
-def populateStates():
+def populateStates(statePopulations):
     """ Populate the list of states and their facebook codes """
     # For now, never overwrite
     numStates = len(State.objects.all())
@@ -25,17 +27,27 @@ def populateStates():
         assert numStates == 50
         return
 
-    from .stateToFbCode import mapping
-    for line in mapping:
+    for line in stateToFbCode.mapping:
         abbrev = line[0]
         name = line[1]
         facebookId = line[2]
+        population = statePopulations[name]
 
         State.objects.create(name=name,
                              abbrev=abbrev,
-                             facebookId=facebookId)
+                             facebookId=facebookId,
+                             population=population)
 
-def populateCities(fixMode=False, verboseYield = False):
+def addPopulationToStates(statePopulations):
+    """ For migration, most likely, though maybe to update when we get
+        newer data? """
+    for state in statePopulations:
+        if state == "District of Columbia": continue
+        stateObj = State.objects.get(name=state)
+        stateObj.population = statePopulations[state]
+        stateObj.save()
+
+def populateCities(cityPopulations, fixMode=False, verboseYield = False):
     """ Populate the list of cities and their facebook codes.
         :param fixMode: Will create any new cities not in the database,
             and update any facebook codes and populations of existing cities.
@@ -54,19 +66,16 @@ def populateCities(fixMode=False, verboseYield = False):
     if verboseYield:
         yield "Beginning downlod.<br>"
 
-    populationDataByState = getCityPopulations()
-
     if verboseYield:
         yield "Completed download. Processing.<br>"
 
-    from .cityToFbCode import mapping
-    for i, line in enumerate(mapping):
+    for i, line in enumerate(cityToFbCode.mapping):
         city = line[0]
         stateAbbrev = line[1]
         facebookId = line[2]
 
         if verboseYield and i % 100 == 0:
-            yield "%d/%d<br>" % (i+1, len(mapping))
+            yield "%d/%d<br>" % (i+1, len(cityToFbCode.mapping))
 
         try:
             state = State.objects.get(abbrev=stateAbbrev)
@@ -77,11 +86,11 @@ def populateCities(fixMode=False, verboseYield = False):
             continue
 
         stateName = state.name
-        assert stateName in populationDataByState
-        if city not in populationDataByState[stateName]:
+        assert stateName in cityPopulations
+        if city not in cityPopulations[stateName]:
             population = 0
         else:
-            population = populationDataByState[stateName][city]
+            population = cityPopulations[stateName][city]
 
         if fixMode:
             try:
@@ -100,8 +109,8 @@ def populateCities(fixMode=False, verboseYield = False):
                             facebookId=facebookId,
                             population=population)
 
-def updateCitiesWithCurrentData():
-    for x in populateCities(fixMode = True, verboseYield = True):
+def updateCitiesWithCurrentData(cityPopulations):
+    for x in populateCities(cityPopulations, fixMode=True, verboseYield=True):
         yield x
 
 def populateAllData():
@@ -136,8 +145,10 @@ def populateAllData():
     apiKey = os.environ['PROPUBLICA_API_KEY']
     headers = {'X-API-Key': apiKey}
 
+    cityPopulations, statePopulations = getCityStatePopulations()
+
     populateParties(Party, Party.objects)
-    populateStates()
-    populateCities()
+    populateStates(statePopulations)
+    populateCities(cityPopulations)
     senatorDataFile = requests.get(url, headers=headers)
     _populateSenatorsWith(senatorDataFile.json())

@@ -11,7 +11,7 @@ import traceback
 from googleSearcher import GoogleSearcher, TimeoutError
 
 sys.path.append("../redblue/viewsenators")
-from getCityPopulations import getCityPopulations
+from getCityStatePopulations import getCityStatePopulations
 from stateToFbCode import mapping
 
 PICKLE_FILENAME = "codes.pickle"
@@ -22,13 +22,13 @@ def readAllCities():
     for row in mapping:
         stateNameToAbbrev[row[1]] = row[0]
 
-    populations = getCityPopulations()
+    cityPopulations, statePopulations = getCityStatePopulations()
     statesToCitiesList = {}
-    for state in populations:
+    for state in cityPopulations:
         if state not in stateNameToAbbrev: continue
         stateAbbrev = stateNameToAbbrev[state]
         statesToCitiesList[stateAbbrev] = []
-        for city in populations[state]:
+        for city in cityPopulations[state]:
             statesToCitiesList[stateAbbrev].append(city)
     return statesToCitiesList
 

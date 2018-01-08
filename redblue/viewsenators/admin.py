@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from django import forms
 from django.contrib import admin
 
-from .models import ContactList, Senator, City
+from .models import ContactList, Senator, City, State
 
 class ChooseFormSimple(forms.ModelForm):
     description = forms.CharField(widget=forms.Textarea())
@@ -13,6 +13,9 @@ class ChooseFormSimple(forms.ModelForm):
 class ContactListAdmin(admin.ModelAdmin):
     list_display = ('title', 'description')
     form = ChooseFormSimple
+
+@admin.register(State)
+class StateAdmin(admin.ModelAdmin): pass
 
 @admin.register(Senator)
 class SenatorAdmin(admin.ModelAdmin): pass

@@ -74,7 +74,14 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='viewsenators.Party'),
         ),
 
-        # Generate the contactList on the fly instead
+        # Generate the contactList on the fly instead. Add a default so
+        # it's undoable.
+        migrations.AlterField(
+            model_name='ContactList',
+            name='fbUrl',
+            field=models.CharField(max_length=4096, default=""),
+            preserve_default=True,
+        ),
         migrations.RemoveField(
             model_name='ContactList',
             name='fbUrl',
@@ -108,5 +115,11 @@ class Migration(migrations.Migration):
         migrations.RemoveField(
             model_name='senator',
             name='party_old',
+        ),
+
+        migrations.AddField(
+            model_name='state',
+            name='population',
+            field=models.PositiveIntegerField(default=0),
         ),
     ]
