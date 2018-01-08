@@ -116,4 +116,10 @@ class Migration(migrations.Migration):
             model_name='senator',
             name='party_old',
         ),
+
+        migrations.AddField(
+            model_name='state',
+            name='population',
+            field=models.PositiveIntegerField(default=0),
+        ),
     ]
