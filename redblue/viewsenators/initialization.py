@@ -115,7 +115,7 @@ def populateCities(cityPopulations, fixMode=False, verboseYield = False):
                 pass
 
         if i > 2001:
-            yield "create", city, state, facebookId, population
+            yield "create", city, state.abbrev, facebookId, population
         City.objects.create(name=city,
                             state=state,
                             facebookId=facebookId,
