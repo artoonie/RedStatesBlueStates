@@ -87,14 +87,20 @@ def populateCities(cityPopulations, fixMode=False, verboseYield = False):
 
         stateName = state.name
         assert stateName in cityPopulations
+        if i > 2001:
+            yield "State:", stateName
         if city not in cityPopulations[stateName]:
             population = 0
         else:
             population = cityPopulations[stateName][city]
+        if i > 2001:
+            yield "pop:", population
 
         if fixMode:
             try:
                 cityObj = City.objects.get(name=city, state=state)
+                if i > 2001:
+                    yield "city:", city, facebookId
                 if cityObj.facebookId != facebookId or cityObj.population != population:
                     cityObj.facebookId = facebookId
                     cityObj.population = population
