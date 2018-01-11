@@ -98,18 +98,24 @@ def populateCities(cityPopulations, fixMode=False, verboseYield = False):
 
         if fixMode:
             try:
-                cityObj = City.objects.get(name=city, state=state)
                 if i > 2001:
                     yield "city:", city, facebookId
+                cityObj = City.objects.get(name=city, state=state)
+                if i > 2001:
+                    yield "cityObj:", cityObj
                 if cityObj.facebookId != facebookId or cityObj.population != population:
                     cityObj.facebookId = facebookId
                     cityObj.population = population
                     cityObj.save()
                 continue
             except City.DoesNotExist:
+                if i > 2001:
+                    yield "DNE"
                 # Continue to create
                 pass
 
+        if i > 2001:
+            yield "create", city, state, facebookId, population
         City.objects.create(name=city,
                             state=state,
                             facebookId=facebookId,
