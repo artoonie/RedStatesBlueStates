@@ -1,0 +1,5 @@
+How to use the scraper:
+
+1. Run `scrapeFbCityCodes.py`, which will download a list of cities and figure out their facebook code
+        (& wait a day or two.)
+2. Run `convertCityDataToPy.py ../redblue/viewsenators/cityToFbCode.py` to convert the pickled codes to an importable python file.

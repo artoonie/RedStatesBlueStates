@@ -3,15 +3,20 @@ from __future__ import unicode_literals
 
 from colour import Color
 import json
-import os
-import requests
 
+from django.contrib.auth.decorators import user_passes_test
 from django.core.urlresolvers import reverse
-from django.http import HttpResponse, HttpResponseRedirect
+from django.db.models import Sum
+from django.http import HttpResponse, HttpResponseRedirect, StreamingHttpResponse
 from django.shortcuts import get_object_or_404
 from django.template import loader
-from .models import State, Senator, ContactList
+from .models import Party, City, Senator, ContactList
 from .forms import ChooseForm, CombineForm
+from .getPopulations import getCityStatePopulations
+import initialization
+
+# This seems to be the most that Facebook will allow, though it varies over time
+NUM_CITIES_PER_QUERY = 50
 
 def index(request):
     def colorToD3(color):
@@ -28,10 +33,13 @@ def index(request):
             trumpcare = ContactList.objects.get(slug='75ba0d523963492093a3badbd1306b49')
             contactLists.append(trumpcare)
         except ContactList.DoesNotExist:
-            for party in Senator.PARTY_CHOICES:
-                contactLists.append(ContactList.objects.filter(title=party[1])[0])
+            for party in Party.objects.all():
+                contactList = ContactList.objects.get(title=party.name)
+                contactLists.append(contactList)
     if len(contactLists) > 8:
         return debugWriteAnything("You can combine up to 8 lists at most")
+    elif len(contactLists) == 0:
+        return debugWriteAnything("No lists found")
 
     statesInList = {}
     allStates = set()
@@ -97,12 +105,14 @@ def index(request):
     for c in bitmaskToColor:
         bitmaskToColor[c] = colorToD3(bitmaskToColor[c])
 
+    urlPopData = [_senatorListToFbCode(cl.senators.all())
+                     for cl in contactLists]
     context = {
         "bitmaskToColor": json.dumps(bitmaskToColor),
         "stateToBitmasks": stateToBitmask,
         "legendText": json.dumps(legendText),
-        "contactLists": contactLists,
-        "twelveOverLenContactLists": int(12.0/len(contactLists))
+        "contactListData": zip(contactLists, urlPopData),
+        "twelveOverLenContactLists": int(12.0/len(contactLists)),
     }
     return HttpResponse(template.render(context, request))
 
@@ -149,12 +159,12 @@ def createContactList(request):
     so = Senator.objects
 
     ids = {}
-    for party in Senator.PARTY_CHOICES:
+    for party in Party.objects.all():
         idList = ["input[value=\""+str(s.id)+"\"]"
-            for s in so.filter(party=party[0])]
+                  for s in so.filter(party=party)]
         idsSet = set(idList)
         idsStr = ', '.join(idsSet)
-        ids[party[1]] = idsStr
+        ids[party.name] = idsStr
 
     template = loader.get_template('viewsenators/choose.html')
     context = {'form': form,
@@ -166,96 +176,70 @@ def debugWriteAnything(text):
     response.write(text)
     return response
 
-def _makeContactList(title, description, senatorList, public):
-    def _senatorListToFbCode(senators):
-        setOfStates = set([s.state for s in senators])
-        url = "https://www.facebook.com/search/"
-        for state in setOfStates:
-            key = state.facebookId
-            url += key + "/residents/present/"
-        url += "union/me/friends/intersect"
-        return url
+def _senatorListToFbCode(senators):
+    """ :return: the URL and the percentage of the population of the
+        desired states which will be found via that URL """
+    # While there are many better URL constructions that ideally start with
+    # your friends, rather than start with all FB users in each city then
+    # intersect that with your friends list, this is the only way I could get it
+    # to work.
+    # In particular, facebook seems to limit the number of unions to six,
+    # whereas the number of intersections can be ten times that.
+    setOfStates = senators.values('state')
+    setOfCities = City.objects.filter(state__in=setOfStates).order_by('-population')[:NUM_CITIES_PER_QUERY]
+    url = "https://www.facebook.com/search/"
+    for city in setOfCities:
+        url += city.facebookId + "/residents/present/"
+    url += "union/me/friends/intersect/"
 
+    # % of population in this search
+    cityPop = setOfCities.aggregate(Sum('population'))['population__sum']
+    statePop = setOfStates.aggregate(Sum('state__population'))['state__population__sum']
+    percentPopIncludedInURL = float(cityPop) / float(statePop)
+    percentPopIncludedInURL = int(100*percentPopIncludedInURL+0.5)
+
+    return {'url': url,
+            'percentPopIncludedInURL': percentPopIncludedInURL}
+
+def _makeContactList(title, description, senatorList, public):
     cl = ContactList.objects.create(
             title = title,
             description = description,
             public = public)
     cl.senators = senatorList
-    cl.fbUrl = _senatorListToFbCode(cl.senators.all())
     cl.save()
     return cl
 
+@user_passes_test(lambda u: u.is_superuser)
 def populateSenators(request):
-    """ Populate the list of senators using the ProPublica API """
-    def _populateSenatorsWith(data):
-        """ Populate the list of senators with a propublica dictionary """
-        numSenators = len(Senator.objects.all())
-        if numSenators != 0:
-            assert numSenators == 100
-            return
-
-        assert data['status'] == 'OK'
-        results = data['results']
-        assert len(results) == 1 # could have multiple congresses?
-        result = results[0]
-
-        assert result['congress'] == '115'
-        assert result['chamber'] == 'Senate'
-        assert result['offset'] == 0
-
-        for member in result['members']:
-            if member['in_office'] == 'false': continue
-            assert member['in_office'] == 'true'
-
-            state = State.objects.get(abbrev=member['state'])
-            Senator.objects.create(firstName= member['first_name'],
-                                   lastName = member['last_name'],
-                                   party = member['party'],
-                                   state = state)
-
-    def _populateStates():
-        """ Populate the list of states and their facebook codes """
-        # For now, never overwrite
-        numStates = len(State.objects.all())
-        if len(State.objects.all()) != 0:
-            assert numStates == 50
-            return
-
-        from .stateToFbCode import mapping
-        for line in mapping:
-            abbrev = line[0]
-            name = line[1]
-            facebookId = line[2]
-
-            State.objects.create(name=name,
-                                 abbrev=abbrev,
-                                 facebookId=facebookId)
     def _createInitialLists():
         assert ContactList.objects.count() == 0
         assert Senator.objects.count() == 100
-        for party in Senator.PARTY_CHOICES:
-            title = party[1]
-            if party[0] == "D":
-                desc = "Democratic"
-            else:
-                desc = party[1]
+        for party in Party.objects.all():
+            title = party.name
+            desc = party.adjective
             description = "All " + desc + " senators"
-            senators = Senator.objects.filter(party=party[0])
+            senators = Senator.objects.filter(party=party)
             _makeContactList(title, description, senators, public=True)
 
-    #if not State.objects.count() == 0:
-    #    return debugWriteAnything("Already initialized.")
-
-    url = 'https://api.propublica.org/congress/v1/115/senate/members.json'
-    apiKey = os.environ['PROPUBLICA_API_KEY']
-    headers = {'X-API-Key': apiKey}
-
-    _populateStates()
-    dataFile = requests.get(url, headers=headers)
-    _populateSenatorsWith(dataFile.json())
+    initialization.populateAllData()
     _createInitialLists()
 
     senators = Senator.objects.all()
     def s2t(s): return "%s: %s, %s" % (s.state.abbrev, s.firstName, s.lastName)
     senText = '<br>'.join(sorted([s2t(s) for s in senators]))
+
     return debugWriteAnything("The list of senators: <br>" + senText)
+
+@user_passes_test(lambda u: u.is_superuser)
+def updateCitiesAndStatesWithLatestData(request):
+    # This can take more than 30 seconds, so we need a streaming response
+    # for Heroku to not shut it down
+    # This is only run once by the admin, so the decreased performance
+    # shouldn't matter.
+    def runner():
+        cityPopulations, statePopulations = getCityStatePopulations()
+        for x in initialization.updateCitiesWithCurrentData(cityPopulations):
+            yield x
+        yield initialization.addPopulationToStates(statePopulations)
+    return StreamingHttpResponse(runner())

@@ -6,27 +6,41 @@ from django.db import models
 from django.utils.text import slugify
 import uuid
 
+class Party(models.Model):
+    abbrev = models.CharField(max_length=1)
+    name = models.CharField(max_length=16)
+
+    # e.g. a "Democratic" senator, or a "Republican" congressperson
+    adjective = models.CharField(max_length=16)
+
 class State(models.Model):
     name = models.CharField(max_length=16)
     abbrev = models.CharField(max_length=2)
     facebookId = models.CharField(max_length=15)
+    population = models.PositiveIntegerField(default=0)
 
-class Senator(models.Model):
-    PARTY_CHOICES = (
-        ('R', 'Republican'),
-        ('D', 'Democrat'),
-        ('I', 'Independent'),
-    )
+class City(models.Model):
+    name = models.CharField(max_length=64) # largest city name is 57 chars
+    state = models.ForeignKey(State, on_delete=models.CASCADE)
+    facebookId = models.CharField(max_length=16) # cities can have 15 or 16 char IDs
+    population = models.PositiveIntegerField()
+
+class Congressmember(models.Model):
     firstName = models.CharField(max_length=128)
     lastName = models.CharField(max_length=128)
-    party = models.CharField(max_length=1, choices=PARTY_CHOICES)
+    party = models.ForeignKey(Party, on_delete=models.CASCADE)
+    cities = models.ManyToManyField(City)
+
+class Senator(models.Model):
+    firstName = models.CharField(max_length=128)
+    lastName = models.CharField(max_length=128)
+    party = models.ForeignKey(Party, on_delete=models.CASCADE)
     state = models.ForeignKey(State, on_delete=models.CASCADE)
 
 class ContactList(models.Model):
     title = models.CharField(max_length=128)
     description = models.CharField(max_length=1024)
     senators = models.ManyToManyField(Senator)
-    fbUrl = models.CharField(max_length=4096)
     uid = models.UUIDField(primary_key=False, default=uuid.uuid4,
                            editable=False, max_length=16)
     slug = models.SlugField(unique=True, editable=False)
