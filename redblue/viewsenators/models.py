@@ -22,8 +22,9 @@ class State(models.Model):
 class City(models.Model):
     name = models.CharField(max_length=64) # largest city name is 57 chars
     state = models.ForeignKey(State, on_delete=models.CASCADE)
-    facebookId = models.CharField(max_length=16) # cities can have 15 or 16 char IDs
     population = models.PositiveIntegerField()
+    # cities can have 15 or 16 char IDs, though Scottville, MI has 17
+    facebookId = models.CharField(max_length=17)
 
 class Congressmember(models.Model):
     firstName = models.CharField(max_length=128)
