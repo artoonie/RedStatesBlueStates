@@ -29,7 +29,7 @@ class ChooseForm(forms.ModelForm):
         required=True)
 
     description = forms.CharField(
-        label="Longer description and call script",
+        label="Call script",
         label_suffix=mark_safe("<br/>"),
         widget=forms.Textarea(attrs={"rows": 5, "cols": 35}),
         help_text="<br/>What should people tell their friends "
@@ -47,8 +47,3 @@ class ChooseForm(forms.ModelForm):
     senators = forms.MultipleChoiceField(
         widget  = forms.CheckboxSelectMultiple,
         choices = getSenatorChoices)
-
-class CombineForm(forms.Form):
-    contactLists = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple,
-        choices=getContactListChoices,
-        label = "")

@@ -10,7 +10,7 @@ from django.http import HttpResponse, HttpResponseRedirect, StreamingHttpRespons
 from django.shortcuts import get_object_or_404
 from django.template import loader
 from .models import Party, City, Senator, ContactList
-from .forms import ChooseForm, CombineForm
+from .forms import ChooseForm
 from .getPopulations import getCityStatePopulations
 import initialization
 
@@ -48,24 +48,8 @@ def index(request):
     return HttpResponse(template.render(context, request))
 
 def combineContactList(request):
-    # if this is a POST request we need to process the form data
-    if request.method == 'POST':
-        # create a form instance and populate it with data from the request:
-        form = CombineForm(request.POST)
-
-        # check whether it's valid:
-        if form.is_valid():
-            data = form.cleaned_data
-            contactLists = data['contactLists']
-            slugs = [ContactList.objects.get(id=c).slug for c in contactLists]
-            slugStr = ','.join(slugs)
-            return HttpResponseRedirect(reverse('index')+'?lists=' + slugStr)
-
-    # if a GET (or any other method) we'll create a blank form
-    form = CombineForm()
-
     template = loader.get_template('viewsenators/combine.html')
-    context = {'form': form}
+    context = {'contactLists': ContactList.objects.all()}
     return HttpResponse(template.render(context, request))
 
 def createContactList(request):
@@ -82,7 +66,7 @@ def createContactList(request):
             senators = data['senators']
             public = data['public']
             cl = _makeContactList(title, description, senators, public)
-            return HttpResponseRedirect(reverse('index')+'?lists=' + cl.slug)
+            return HttpResponseRedirect(reverse('index')+'?list=' + cl.slug)
     # if a GET (or any other method) we'll create a blank form
     else:
         form = ChooseForm()
