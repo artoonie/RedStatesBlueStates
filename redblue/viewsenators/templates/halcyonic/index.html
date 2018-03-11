@@ -1,24 +1,27 @@
 {% include "halcyonic/header.html" %}
 
 <script>
-function setColor(colorIdxToNotTouch) {
+function setColor(hoveredStateName) {
     var gray="rgb(213,222,217)"
     d3.selectAll("path").filter(
-        function(d) { return (d.properties.colorBitmask & (1<<colorIdxToNotTouch)) == 0 })
+        function(d) { return (d.properties.name != hoveredStateName )})
         .style('fill', gray)
         .style('transition', '0.5s')
 }
 function restoreColors() {
-    for (var idx in bitmaskToColor) {
-        $( "path[colorBitmask='" + idx + "']" ).css('fill',
-            function() { return bitmaskToColor[idx] } );
-    }
-    $( "path[colorBitmask='0']" ).css('fill', '#000' );
+    d3.selectAll("path").filter(
+        function(d) { return (!d.properties.isLiveState )})
+        .style('fill', "000")
+        .style('transition', '0.5s')
+    d3.selectAll("path").filter(
+        function(d) { return (d.properties.isLiveState )})
+        .style('fill', "{{stateColor}}")
+        .style('transition', '0.5s')
 }
 
-{% for cl, urlData in contactListData %}
+{% for state, ign in stateToURLsPopsAndDesc.items %}
 $(document).ready(function(){
-    $( "a[id='href_{{cl.id}}']" ).mouseenter(function(){setColor({{forloop.counter0}})});
+    $( "a[id='href_{{forloop.counter0}}']" ).mouseenter(function(){setColor("{{state.name}}")});
 });
 {% endfor %}
 $(document).ready(function(){
@@ -33,16 +36,18 @@ $(document).ready(function(){
 					<div id="features">
 						<div class="container">
 							<div class="row">
-{% for cl, urlData in contactListData %}
-								<div class="{{twelveOverLenContactLists}}u 12u(mobile)" align="center">
+{% for state, data in stateToURLsPopsAndDesc.items %}
+								<div class="4u 12u(mobile)" align="center">
 										<section id="searchFacebook">
-											Click to search Facebook:<br>
-											<a href="{{ urlData.url }}" id="href_{{ cl.id }}" name="party" class="button-big">{{ cl.title }}</a>
+											<a href="{{ data.url }}" id="href_{{ forloop.counter0 }}" name="party" class="button-big">
+												<span class="font-size:6px !important">Find my friends in</span><br/>
+												{{ state.name }}
+                                            </a>
 											<p>
-												This link will find {{ urlData.percentPopIncludedInURL }}% of your friends in the highlighted states.
+												<small>(search includes {{ data.percentPopIncludedInURL }}% of {{state.name}}'s population.)</small>
 											</p>
 											<p>
-												{{ cl.description|markdown }}
+												{{ data.callScript|markdown }}
 											</p>
 										</section>
 								</div>
@@ -101,11 +106,6 @@ var path = d3.geo.path()               // path generator that will convert GeoJS
                .projection(projection);  // tell path generator to use albersUsa projection
 
         
-// Define linear scale for output
-var bitmaskToColor = {{ bitmaskToColor|safe }};
-
-var legendText = {{ legendText|safe }};
-
 //Create SVG element and append map to the SVG
 var svg = d3.select("#mapdiv")
             .append("div")
@@ -131,66 +131,36 @@ d3.json( "{% static 'viewsenators/us-states.json' %}", function(json) {
 for (var j = 0; j < json.features.length; j++)  {
     var d3State = json.features[j].properties.name;
 
-    {% for pyState, colorBitmask in stateToBitmasks.items %}
+    {% for pyState, ign in stateToURLsPopsAndDesc.items %}
         {% if forloop.counter0 == 0 %}
             if
         {% else %}
             else if
         {% endif %}
         ("{{ pyState.name }}" == d3State) {
-            json.features[j].properties.colorBitmask = {{ colorBitmask }}; 
+            json.features[j].properties.isLiveState = true; 
             continue
         }
     {% endfor %}
         else {
-            json.features[j].properties.colorBitmask = 0; 
+            json.features[j].properties.isLiveState = false; 
         }
 }
-        
+
 // Bind the data to the SVG and create one path per GeoJSON feature
 svg.selectAll("path")
     .data(json.features)
     .enter()
     .append("path")
     .attr("d", path)
-    .attr("colorBitmask", function(d) { return d.properties.colorBitmask } )
     .style("stroke", "#fff")
     .style("stroke-width", "1")
-    .style("fill", function(d) { return bitmaskToColor[d.properties.colorBitmask]; });
+    .style("fill", function(d) { return d.properties.isLiveState ? "{{stateColor}}" : "#000" });
 
 
 
-// Modified Legend Code from Mike Bostock: http://bl.ocks.org/mbostock/3888852
-var legend = d3.select("#mapdiv")
-                 .append("div")
-                 .append("svg")
-                 .attr("class", "legend")
-                 .attr("id", "legend")
-                 .attr("style", "display: none")
-                 .attr("width", "100%")
-                 .attr("height", function() { return 15 + d3.values(bitmaskToColor).length * 25 })
-                   .selectAll("g")
-                   .data(d3.values(bitmaskToColor))
-                   .enter()
-                   .append("g")
-                 .attr("transform", function(d, i) { return "translate(0," + i * 25 + ")"; });
-
-      legend.append("rect")
-             .attr("width", 18)
-             .attr("height", 18)
-             .style("fill", function(d, i) { return d3.values(bitmaskToColor)[i]; });
-
-      legend.append("text")
-            .data(d3.values(legendText))
-            .attr("x", 24)
-            .attr("y", 9)
-            .attr("dy", ".35em")
-            .text(function(d) { return d; });
 });
 </script>
-										</div>
-										<div class="toggleLegendLinkContainer">
-										<a onClick="toggleLegend()" id="toggleLegendLink">[show legend]</a>
 										</div>
 										</section>
 
