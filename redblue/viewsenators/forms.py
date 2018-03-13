@@ -32,8 +32,11 @@ class ChooseForm(forms.ModelForm):
         label="Call script",
         label_suffix=mark_safe("<br/>"),
         widget=forms.Textarea(attrs={"rows": 5, "cols": 35}),
+        initial="Please call Senator {{name}} at {{number}}.",
         help_text="<br/>What should people tell their friends "
-                  "to tell their senators. Markdown allowed. "
+                  "to tell their senators. Markdown allowed.<br>"
+                  "{{name}} will be replaced with the senator's name, and "
+                  "{{phone}} with their phone number."
                   "<a onClick=\"toggleCheetsheet()\">[markdown cheatsheet]</a><br/><br/>",
         required=True)
 

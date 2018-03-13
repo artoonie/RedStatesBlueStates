@@ -19,9 +19,9 @@ function restoreColors() {
         .style('transition', '0.5s')
 }
 
-{% for state, ign in stateToURLsPopsAndDesc.items %}
+{% for senator, ign in senatorToURLsPopsAndDesc.items %}
 $(document).ready(function(){
-    $( "a[id='href_{{forloop.counter0}}']" ).mouseenter(function(){setColor("{{state.name}}")});
+    $( "a[id='href_{{forloop.counter0}}']" ).mouseenter(function(){setColor("{{senator.state.name}}")});
 });
 {% endfor %}
 $(document).ready(function(){
@@ -36,15 +36,15 @@ $(document).ready(function(){
 					<div id="features">
 						<div class="container">
 							<div class="row">
-{% for state, data in stateToURLsPopsAndDesc.items %}
+{% for senator, data in senatorToURLsPopsAndDesc.items %}
 								<div class="4u 12u(mobile)" align="center">
 										<section id="searchFacebook">
 											<a href="{{ data.url }}" id="href_{{ forloop.counter0 }}" name="party" class="button-big">
-												<span class="font-size:6px !important">Find my friends in</span><br/>
-												{{ state.name }}
+												Find your {{senator.state.name}} friends represented by<br/>
+												{{ senator.firstName }} {{ senator.lastName }}
                                             </a>
 											<p>
-												<small>(search includes {{ data.percentPopIncludedInURL }}% of {{state.name}}'s population.)</small>
+												<small>(search includes {{ data.percentPopIncludedInURL }}% of {{senator.state.name}}'s population.)</small>
 											</p>
 											<p>
 												{{ data.callScript|markdown }}
@@ -131,13 +131,13 @@ d3.json( "{% static 'viewsenators/us-states.json' %}", function(json) {
 for (var j = 0; j < json.features.length; j++)  {
     var d3State = json.features[j].properties.name;
 
-    {% for pyState, ign in stateToURLsPopsAndDesc.items %}
+    {% for senator, ign in senatorToURLsPopsAndDesc.items %}
         {% if forloop.counter0 == 0 %}
             if
         {% else %}
             else if
         {% endif %}
-        ("{{ pyState.name }}" == d3State) {
+        ("{{ senator.state.name }}" == d3State) {
             json.features[j].properties.isLiveState = true; 
             continue
         }

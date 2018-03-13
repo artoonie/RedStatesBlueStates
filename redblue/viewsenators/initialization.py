@@ -2,7 +2,7 @@ import os
 import requests
 import cityToFbCode
 import stateToFbCode
-from .models import Party, City, State, Senator
+from .models import Party, City, State, Senator, Congressmember
 from .getPopulations import getCityStatePopulations
 
 def populateParties(partyModel, partyObjects):
@@ -64,7 +64,7 @@ def populateCities(cityPopulations, fixMode=False, verboseYield = False):
         return
 
     if verboseYield:
-        yield "Beginning downlod.<br>"
+        yield "Beginning download.<br>"
 
     if verboseYield:
         yield "Completed download. Processing.<br>"
@@ -114,12 +114,11 @@ def updateCitiesWithCurrentData(cityPopulations):
         yield x
 
 def populateAllData():
-    def _populateSenatorsWith(data):
-        """ Populate the list of senators with a propublica dictionary """
-        numSenators = len(Senator.objects.all())
-        if numSenators != 0:
-            assert numSenators == 100
-            return
+    def _populateMOCWith(data, mocType):
+        """ Populate members of congress with a propublica dictionary.
+            mocType should be either Senator or Congressmember
+            """
+        assert(mocType == Senator or mocType == Congressmember)
 
         assert data['status'] == 'OK'
         results = data['results']
@@ -127,7 +126,7 @@ def populateAllData():
         result = results[0]
 
         assert result['congress'] == '115'
-        assert result['chamber'] == 'Senate'
+        assert result['chamber'] == 'Senate' if mocType == 'Senator' else 'House'
         assert result['offset'] == 0
 
         for member in result['members']:
@@ -136,10 +135,17 @@ def populateAllData():
 
             state = State.objects.get(abbrev=member['state'])
             party = Party.objects.get(abbrev=member['party'])
-            Senator.objects.create(firstName= member['first_name'],
-                                   lastName = member['last_name'],
-                                   party = party,
-                                   state = state)
+            try:
+                senator = mocType.objects.get(firstName= member['first_name'],
+                                              lastName = member['last_name'])
+                senator.phoneNumber = member['phone']
+                senator.save()
+            except mocType.DoesNotExist:
+                mocType.objects.create(firstName= member['first_name'],
+                                       lastName = member['last_name'],
+                                       phoneNumber = member['phone'],
+                                       party = party,
+                                       state = state)
 
     url = 'https://api.propublica.org/congress/v1/115/senate/members.json'
     apiKey = os.environ['PROPUBLICA_API_KEY']
@@ -151,4 +157,4 @@ def populateAllData():
     populateStates(statePopulations)
     populateCities(cityPopulations)
     senatorDataFile = requests.get(url, headers=headers)
-    _populateSenatorsWith(senatorDataFile.json())
+    _populateMOCWith(senatorDataFile.json(), Senator)

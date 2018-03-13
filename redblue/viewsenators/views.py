@@ -20,6 +20,17 @@ NUM_CITIES_PER_QUERY = 50
 def index(request):
     def colorToD3(color):
         return "rgb(%d,%d,%d)" % (color.red*255, color.green*255, color.blue*255)
+    def substituteDesc(moc, desc):
+        if "{{number}}" not in desc:
+            desc += "\n\n%s's phone number is {{number}}" % moc.lastName
+
+        if moc.phoneNumber:
+            text = moc.phoneNumber
+        else:
+            text ="(unknown number)"
+
+        desc = desc.replace("{{name}}", moc.firstName + " " + moc.lastName)
+        return desc.replace("{{number}}", text)
     template = loader.get_template('halcyonic/index.html')
 
     if 'list' in request.GET:
@@ -31,19 +42,15 @@ def index(request):
         except ContactList.DoesNotExist:
             contactList = ContactList.objects.get(title="Republican")
 
-    allStates = set()
-    for senator in contactList.senators.all():
-        allStates.add(senator.state)
-
     stateColor = colorToD3(Color(rgb=(125/255.0,   0/255.0,  16/255.0)))
-    stateToURLsPopsAndDesc = {}
-    for state in allStates:
-        stateToURLsPopsAndDesc[state] = _stateToFbCode(state)
-        stateToURLsPopsAndDesc[state]['callScript'] = contactList.description
+    senatorToURLsPopsAndDesc = {}
+    for senator in contactList.senators.all():
+        senatorToURLsPopsAndDesc[senator] = _stateToFbCode(senator.state)
+        senatorToURLsPopsAndDesc[senator]['callScript'] = substituteDesc(senator, contactList.description)
 
     context = {
         "stateColor": stateColor,
-        "stateToURLsPopsAndDesc": stateToURLsPopsAndDesc
+        "senatorToURLsPopsAndDesc": senatorToURLsPopsAndDesc
     }
     return HttpResponse(template.render(context, request))
 
@@ -127,18 +134,7 @@ def _makeContactList(title, description, senatorList, public):
 
 @user_passes_test(lambda u: u.is_superuser)
 def populateSenators(request):
-    def _createInitialLists():
-        assert ContactList.objects.count() == 0
-        assert Senator.objects.count() == 100
-        for party in Party.objects.all():
-            title = party.name
-            desc = party.adjective
-            description = "All " + desc + " senators"
-            senators = Senator.objects.filter(party=party)
-            _makeContactList(title, description, senators, public=True)
-
     initialization.populateAllData()
-    _createInitialLists()
 
     senators = Senator.objects.all()
     def s2t(s): return "%s: %s, %s" % (s.state.abbrev, s.firstName, s.lastName)

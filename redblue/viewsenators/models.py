@@ -4,6 +4,7 @@ import itertools
 
 from django.db import models
 from django.utils.text import slugify
+from django.core.validators import RegexValidator
 import uuid
 
 class Party(models.Model):
@@ -29,12 +30,28 @@ class City(models.Model):
 class Congressmember(models.Model):
     firstName = models.CharField(max_length=128)
     lastName = models.CharField(max_length=128)
+    phoneNumber = models.CharField(
+        max_length = 12,
+        validators = [RegexValidator(regex='^\d{3}-\d{3}-\d{4}$',
+                                     message='Must be in format 555-555-5555',
+                                     code='nomatch')
+                     ],
+        null = True
+    )
     party = models.ForeignKey(Party, on_delete=models.CASCADE)
     cities = models.ManyToManyField(City)
 
 class Senator(models.Model):
     firstName = models.CharField(max_length=128)
     lastName = models.CharField(max_length=128)
+    phoneNumber = models.CharField(
+        max_length = 12,
+        validators = [RegexValidator(regex='^\d{3}-\d{3}-\d{4}$',
+                                     message='Must be in format 555-555-5555',
+                                     code='nomatch')
+                     ],
+        null = True
+    )
     party = models.ForeignKey(Party, on_delete=models.CASCADE)
     state = models.ForeignKey(State, on_delete=models.CASCADE)
 
