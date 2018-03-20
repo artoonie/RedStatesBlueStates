@@ -48,10 +48,12 @@ def index(request):
         senatorToURLsPopsAndDesc[senator] = _stateToFbCode(senator.state)
         senatorToURLsPopsAndDesc[senator]['callScript'] = substituteDesc(senator, contactList.description)
 
+    sortedDict = sorted(senatorToURLsPopsAndDesc.iteritems(),
+                        key = lambda x: x[0].state.name)
     context = {
         "stateColor": stateColor, # TODO eventually have meaningful colors?
         "title": contactList.title,
-        "senatorToURLsPopsAndDesc": senatorToURLsPopsAndDesc
+        "senatorToURLsPopsAndDesc": sortedDict
     }
     return HttpResponse(template.render(context, request))
 
