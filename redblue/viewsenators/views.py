@@ -2,7 +2,6 @@
 from __future__ import unicode_literals
 
 from colour import Color
-import json
 
 from django.contrib.auth.decorators import user_passes_test
 from django.core.urlresolvers import reverse
@@ -11,7 +10,7 @@ from django.http import HttpResponse, HttpResponseRedirect, StreamingHttpRespons
 from django.shortcuts import get_object_or_404
 from django.template import loader
 from .models import Party, City, Senator, ContactList
-from .forms import ChooseForm, CombineForm
+from .forms import ChooseForm
 from .getPopulations import getCityStatePopulations
 import initialization
 
@@ -21,120 +20,44 @@ NUM_CITIES_PER_QUERY = 50
 def index(request):
     def colorToD3(color):
         return "rgb(%d,%d,%d)" % (color.red*255, color.green*255, color.blue*255)
+    def substituteDesc(moc, desc):
+        if "{{number}}" not in desc:
+            desc += "\n\n%s's phone number is {{number}}" % moc.lastName
+
+        if moc.phoneNumber:
+            text = moc.phoneNumber
+        else:
+            text ="(unknown number)"
+
+        desc = desc.replace("{{name}}", moc.firstName + " " + moc.lastName)
+        return desc.replace("{{number}}", text)
     template = loader.get_template('halcyonic/index.html')
 
-    if 'lists' in request.GET:
-        clIds = str.split(str(request.GET['lists']), ',')
-        clIds = [str(x) for x in clIds]
-        contactLists = [get_object_or_404(ContactList, slug=x) for x in clIds]
+    if 'list' in request.GET:
+        clId = str(request.GET['list'])
+        contactList = get_object_or_404(ContactList, slug=clId)
     else:
-        contactLists = []
         try:
-            trumpcare = ContactList.objects.get(slug='75ba0d523963492093a3badbd1306b49')
-            contactLists.append(trumpcare)
+            contactList = ContactList.objects.get(slug='75ba0d523963492093a3badbd1306b49')
         except ContactList.DoesNotExist:
-            for party in Party.objects.all():
-                contactList = ContactList.objects.get(title=party.name)
-                contactLists.append(contactList)
-    if len(contactLists) > 8:
-        return debugWriteAnything("You can combine up to 8 lists at most")
-    elif len(contactLists) == 0:
-        return debugWriteAnything("No lists found")
+            contactList = ContactList.objects.get(title="Republican")
 
-    statesInList = {}
-    allStates = set()
-    for cl in contactLists:
-        statesInList[cl] = set([s.state for s in cl.senators.all()])
-        allStates.update(statesInList[cl])
+    stateColor = colorToD3(Color(rgb=(125/255.0,   0/255.0,  16/255.0)))
+    senatorToURLsPopsAndDesc = {}
+    for senator in contactList.senators.all():
+        senatorToURLsPopsAndDesc[senator] = _stateToFbCode(senator.state)
+        senatorToURLsPopsAndDesc[senator]['callScript'] = substituteDesc(senator, contactList.description)
 
-    stateToBitmask = {}
-    setOfColorIdxs = set()
-    for state in allStates:
-        colorBitmask = int(0)
-        for i, cl in enumerate(contactLists):
-            if state in statesInList[cl]:
-                colorBitmask |= 1 << i
-        stateToBitmask[state] = colorBitmask
-        setOfColorIdxs.add(colorBitmask)
-
-    # Single-association colors
-    bitmaskToColor = {}
-    for i, cl in enumerate(contactLists):
-        idx = 1 << i
-
-        if 'Republican' in cl.title:
-            bitmaskToColor[idx] = Color(rgb=(125/255.0,   0/255.0,  16/255.0))
-        elif 'Democrat' in cl.title:
-            bitmaskToColor[idx] = Color(rgb=( 13/255.0,   0/255.0,  76/255.0))
-        elif 'Independent' in cl.title:
-            bitmaskToColor[idx] = Color(rgb=(128/255.0, 128/255.0,   0/255.0))
-        else:
-            bitmaskToColor[idx] = Color(pick_for=idx)
-
-    # Double-association colors
-    for i0 in range(len(contactLists)):
-        for i1 in range(len(contactLists)):
-            idx0 = 1 << i0
-            idx1 = 1 << i1
-            idx = idx0 | idx1
-            if idx not in setOfColorIdxs: continue
-
-            # Interpolate
-            bitmaskToColor[idx] = \
-                list(bitmaskToColor[idx0].range_to(bitmaskToColor[idx1], 3))[1]
-
-    # Remove unused (single-associaten kept around);
-    # Add used (more-than-two associations not added)
-    for i in range(2**len(contactLists)):
-        if i in setOfColorIdxs and i not in bitmaskToColor:
-            bitmaskToColor[i] = Color(pick_for=i)
-        elif i not in setOfColorIdxs and i in bitmaskToColor:
-            del bitmaskToColor[i]
-
-    # Legend
-    legendText = {}
-    for colorBitmask in setOfColorIdxs:
-        labels = []
-        for i in range(len(contactLists)):
-            if colorBitmask & 1 << i:
-                labels.append(contactLists[i].title)
-
-        legendText[colorBitmask] = "/".join(labels)
-
-    assert len(legendText) == len(bitmaskToColor)
-    for c in bitmaskToColor:
-        bitmaskToColor[c] = colorToD3(bitmaskToColor[c])
-
-    urlPopData = [_senatorListToFbCode(cl.senators.all())
-                     for cl in contactLists]
     context = {
-        "bitmaskToColor": json.dumps(bitmaskToColor),
-        "stateToBitmasks": stateToBitmask,
-        "legendText": json.dumps(legendText),
-        "contactListData": zip(contactLists, urlPopData),
-        "twelveOverLenContactLists": int(12.0/len(contactLists)),
+        "stateColor": stateColor, # TODO eventually have meaningful colors?
+        "title": contactList.title,
+        "senatorToURLsPopsAndDesc": senatorToURLsPopsAndDesc
     }
     return HttpResponse(template.render(context, request))
 
 def combineContactList(request):
-    # if this is a POST request we need to process the form data
-    if request.method == 'POST':
-        # create a form instance and populate it with data from the request:
-        form = CombineForm(request.POST)
-
-        # check whether it's valid:
-        if form.is_valid():
-            data = form.cleaned_data
-            contactLists = data['contactLists']
-            slugs = [ContactList.objects.get(id=c).slug for c in contactLists]
-            slugStr = ','.join(slugs)
-            return HttpResponseRedirect(reverse('index')+'?lists=' + slugStr)
-
-    # if a GET (or any other method) we'll create a blank form
-    form = CombineForm()
-
     template = loader.get_template('viewsenators/combine.html')
-    context = {'form': form}
+    context = {'contactLists': ContactList.objects.all()}
     return HttpResponse(template.render(context, request))
 
 def createContactList(request):
@@ -151,7 +74,7 @@ def createContactList(request):
             senators = data['senators']
             public = data['public']
             cl = _makeContactList(title, description, senators, public)
-            return HttpResponseRedirect(reverse('index')+'?lists=' + cl.slug)
+            return HttpResponseRedirect(reverse('index')+'?list=' + cl.slug)
     # if a GET (or any other method) we'll create a blank form
     else:
         form = ChooseForm()
@@ -176,7 +99,7 @@ def debugWriteAnything(text):
     response.write(text)
     return response
 
-def _senatorListToFbCode(senators):
+def _stateToFbCode(state):
     """ :return: the URL and the percentage of the population of the
         desired states which will be found via that URL """
     # While there are many better URL constructions that ideally start with
@@ -185,8 +108,7 @@ def _senatorListToFbCode(senators):
     # to work.
     # In particular, facebook seems to limit the number of unions to six,
     # whereas the number of intersections can be ten times that.
-    setOfStates = senators.values('state')
-    setOfCities = City.objects.filter(state__in=setOfStates).order_by('-population')[:NUM_CITIES_PER_QUERY]
+    setOfCities = City.objects.filter(state=state).order_by('-population')[:NUM_CITIES_PER_QUERY]
     url = "https://www.facebook.com/search/"
     for city in setOfCities:
         url += city.facebookId + "/residents/present/"
@@ -194,7 +116,8 @@ def _senatorListToFbCode(senators):
 
     # % of population in this search
     cityPop = setOfCities.aggregate(Sum('population'))['population__sum']
-    statePop = setOfStates.aggregate(Sum('state__population'))['state__population__sum']
+    if cityPop is None: cityPop = 0 # TODO hack if a state has no cities
+    statePop = state.population
     percentPopIncludedInURL = float(cityPop) / float(statePop)
     percentPopIncludedInURL = int(100*percentPopIncludedInURL+0.5)
 
@@ -217,8 +140,7 @@ def populateSenators(request):
         assert Senator.objects.count() == 100
         for party in Party.objects.all():
             title = party.name
-            desc = party.adjective
-            description = "All " + desc + " senators"
+            description = "Call {{name}} at {{number}}"
             senators = Senator.objects.filter(party=party)
             _makeContactList(title, description, senators, public=True)
 
