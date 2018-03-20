@@ -134,7 +134,17 @@ def _makeContactList(title, description, senatorList, public):
 
 @user_passes_test(lambda u: u.is_superuser)
 def populateSenators(request):
+    def _createInitialLists():
+        assert ContactList.objects.count() == 0
+        assert Senator.objects.count() == 100
+        for party in Party.objects.all():
+            title = party.name
+            description = "Call {{name}} at {{number}}"
+            senators = Senator.objects.filter(party=party)
+            _makeContactList(title, description, senators, public=True)
+
     initialization.populateAllData()
+    _createInitialLists()
 
     senators = Senator.objects.all()
     def s2t(s): return "%s: %s, %s" % (s.state.abbrev, s.firstName, s.lastName)

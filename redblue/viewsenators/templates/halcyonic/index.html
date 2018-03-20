@@ -40,8 +40,8 @@ $(document).ready(function(){
 								<div class="4u 12u(mobile)" align="center">
 										<section id="searchFacebook">
 											<a href="{{ data.url }}" id="href_{{ forloop.counter0 }}" name="party" class="button-big">
-												Find your {{senator.state.name}} friends represented by<br/>
-												{{ senator.firstName }} {{ senator.lastName }}
+												Ask friends in {{senator.state.name}}<br>to call
+												Sen. {{ senator.firstName }} {{ senator.lastName }}
                                             </a>
 											<p>
 												<small>(search includes {{ data.percentPopIncludedInURL }}% of {{senator.state.name}}'s population.)</small>
