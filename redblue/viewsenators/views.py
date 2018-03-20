@@ -49,7 +49,8 @@ def index(request):
         senatorToURLsPopsAndDesc[senator]['callScript'] = substituteDesc(senator, contactList.description)
 
     context = {
-        "stateColor": stateColor,
+        "stateColor": stateColor, # TODO eventually have meaningful colors?
+        "title": contactList.title,
         "senatorToURLsPopsAndDesc": senatorToURLsPopsAndDesc
     }
     return HttpResponse(template.render(context, request))
