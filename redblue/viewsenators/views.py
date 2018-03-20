@@ -136,7 +136,8 @@ def _makeContactList(title, description, senatorList, public):
 @user_passes_test(lambda u: u.is_superuser)
 def populateSenators(request):
     def _createInitialLists():
-        assert ContactList.objects.count() == 0
+        if ContactList.objects.count() != 0:
+            return
         assert Senator.objects.count() == 100
         for party in Party.objects.all():
             title = party.name
