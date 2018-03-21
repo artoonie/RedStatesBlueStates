@@ -2,7 +2,7 @@ import csv
 import os
 import requests
 
-def getCityStatePopulations(minPopulation = 2500):
+def getCityStatePopulations(minPopulation = 5000):
     """
         :param minPopulation: Populations below this amount are ignored
         :return: A pair of dictionaries:

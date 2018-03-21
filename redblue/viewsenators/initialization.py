@@ -74,7 +74,7 @@ def populateCities(cityPopulations, fixMode=False, verboseYield = False):
         stateAbbrev = line[1]
         facebookId = line[2]
 
-        if verboseYield and i % 100 == 0:
+        if verboseYield and (i+1) % 100 == 0:
             yield "%d/%d<br>" % (i+1, len(cityToFbCode.mapping))
 
         try:
@@ -88,7 +88,12 @@ def populateCities(cityPopulations, fixMode=False, verboseYield = False):
         stateName = state.name
         assert stateName in cityPopulations
         if city not in cityPopulations[stateName]:
-            population = 0
+            try:
+                cityObj = City.objects.get(name=city, state=state)
+                cityObj.delete()
+            except City.DoesNotExist:
+                pass
+            continue # city likely below minPopulation threshold
         else:
             population = cityPopulations[stateName][city]
 
