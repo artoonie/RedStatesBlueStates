@@ -38,7 +38,7 @@ def index(request):
         contactList = get_object_or_404(ContactList, slug=clId)
     else:
         try:
-            contactList = ContactList.objects.get(slug='75ba0d523963492093a3badbd1306b49')
+            contactList = ContactList.objects.get(slug='keep-children-with-their-families')
         except ContactList.DoesNotExist:
             contactList = ContactList.objects.get(title="Republican")
 
