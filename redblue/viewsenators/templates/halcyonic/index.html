@@ -37,6 +37,15 @@ $(document).ready(function(){
                         <h1>
                             <p>{{ title }}</p>
                         </h1>
+                            <p><a href="#" id="openall">Open all {{senatorToURLsPopsAndDesc|length}} windows</a> (you'll have to disable your popup blocker)</p>
+                            <script>
+                                $('#openall').click(function(e) {
+                                    e.preventDefault();
+                                    {% for senator, data in senatorToURLsPopsAndDesc %}
+                                        window.open('{{ data.url }}');
+                                    {% endfor %}
+                                });
+                            </script>
 						<div class="container">
 							<div class="row">
 {% for senator, data in senatorToURLsPopsAndDesc %}
