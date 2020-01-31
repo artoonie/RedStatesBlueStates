@@ -8,7 +8,7 @@ from django.core.validators import RegexValidator
 import uuid
 
 class Party(models.Model):
-    abbrev = models.CharField(max_length=1)
+    abbrev = models.CharField(max_length=2)
     name = models.CharField(max_length=16)
 
     # e.g. a "Democratic" senator, or a "Republican" congressperson
