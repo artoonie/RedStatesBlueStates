@@ -1,8 +1,8 @@
 import os
 import requests
-import cityToFbCode
-import stateToFbCode
-from .models import Party, City, State, Senator, Congressmember
+import viewsenators.cityToFbCode as cityToFbCode
+import viewsenators.stateToFbCode as stateToFbCode
+from .models import Party, City, State, Senator, Congressmember, ContactList
 from .getPopulations import getCityStatePopulations
 
 def populateParties(partyModel, partyObjects):
@@ -16,7 +16,7 @@ def populateParties(partyModel, partyObjects):
     partyObjects.bulk_create([
         partyModel(name="Republican",  abbrev="R", adjective="Republican"),
         partyModel(name="Democrat",    abbrev="D", adjective="Democratic"),
-        partyModel(name="Independent", abbrev="I", adjective="Independent")
+        partyModel(name="Independent", abbrev="ID", adjective="Independent")
     ])
 
 def populateStates(statePopulations):
@@ -118,6 +118,15 @@ def updateCitiesWithCurrentData(cityPopulations):
     for x in populateCities(cityPopulations, fixMode=True, verboseYield=True):
         yield x
 
+def clearDataForNewCongress():
+    Party.objects.all().delete()
+    State.objects.all().delete()
+    Senator.objects.all().delete()
+    Congressmember.objects.all().delete()
+
+    # Note: contactlists have links to senators which are now defunct
+    ContactList.objects.all().delete()
+
 def populateAllData():
     def _populateMOCWith(data, mocType):
         """ Populate members of congress with a propublica dictionary.
@@ -130,7 +139,7 @@ def populateAllData():
         assert len(results) == 1 # could have multiple congresses?
         result = results[0]
 
-        assert result['congress'] == '115'
+        assert result['congress'] == '116'
         assert result['chamber'] == 'Senate' if mocType == 'Senator' else 'House'
         assert result['offset'] == 0
 
@@ -152,7 +161,7 @@ def populateAllData():
                                        party = party,
                                        state = state)
 
-    url = 'https://api.propublica.org/congress/v1/115/senate/members.json'
+    url = 'https://api.propublica.org/congress/v1/116/senate/members.json'
     apiKey = os.environ['PROPUBLICA_API_KEY']
     headers = {'X-API-Key': apiKey}
 

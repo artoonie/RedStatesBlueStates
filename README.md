@@ -4,7 +4,7 @@ You can also use it to generate your own lists - for example, friends who live i
 
 Your friends' senators don't represent you, but you can ask your friends to contact their senators.
 
-View it live on [Heroku](https://www.redfriendsbluefriends.com).
+View it live at [redfriendsbluefriends.com](https://www.redfriendsbluefriends.com).
 
 # Generated URLs
 When this project started, I used to search by state. Facebook has blocked that functionally, so instead, we now only find friends in the sixty most populous cities in each region.
@@ -24,8 +24,12 @@ If you know anyone at Facebook who can re-enable searching by state, please ask 
 # Technical Details
 ## Running the code
 You need the following environment variables:
-- PROPUBLICA_API_KEY: [obtain it here](https://www.propublica.org/datastore/api/propublica-congress-api)
-- DEBUG: set to "True" to enable, "False" to disable
+```bash
+export DEBUG=[true,false]
+export PROPUBLICA_API_KEY=<your-key>
+export SECRET_KEY=<any-secret>
+```
+[You can obtain a propublica API key here](https://www.propublica.org/datastore/api/propublica-congress-api).
 
 After installing requirements and heroku CLI, you should be able to run `heroku local` to run it.
 

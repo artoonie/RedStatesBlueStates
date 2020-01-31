@@ -20,12 +20,13 @@ def getCityStatePopulations(minPopulation = 5000):
         csvURL = "https://raw.githubusercontent.com/a113n/Matplotlib-2.0-by-examples/master/sub-est2016_all.csv"
 
         response = requests.get(csvURL)
-        content = response.content.decode('latin1').encode('utf-8')
+        content = response.content.decode('latin1')
 
     statePopulations = {}
     cityPopulationDataByState = {}
-    cr = csv.reader(content.splitlines(), delimiter=',')
-    firstRow = cr.next()
+    lines = list(content.splitlines())
+    cr = csv.reader(lines, delimiter=',')
+    firstRow = next(cr)
 
     CITY_SUMLEV = "162"
     STATE_SUMLEV = "040"
@@ -61,4 +62,4 @@ def getCityStatePopulations(minPopulation = 5000):
     return cityPopulationDataByState, statePopulations
 
 if __name__ == "__main__":
-    print getCityStatePopulations()
+    print(getCityStatePopulations())

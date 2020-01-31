@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from colour import Color
 
 from django.contrib.auth.decorators import user_passes_test
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.db.models import Sum
 from django.http import HttpResponse, HttpResponseRedirect, StreamingHttpResponse
 from django.shortcuts import get_object_or_404
@@ -12,7 +12,7 @@ from django.template import loader
 from .models import Party, City, Senator, ContactList
 from .forms import ChooseForm
 from .getPopulations import getCityStatePopulations
-import initialization
+import viewsenators.initialization as initialization
 
 # This seems to be the most that Facebook will allow, though it varies over time
 NUM_CITIES_PER_QUERY = 50
@@ -48,7 +48,7 @@ def index(request):
         senatorToURLsPopsAndDesc[senator] = _stateToFbCode(senator.state)
         senatorToURLsPopsAndDesc[senator]['callScript'] = substituteDesc(senator, contactList.description)
 
-    sortedDict = sorted(senatorToURLsPopsAndDesc.iteritems(),
+    sortedDict = sorted(senatorToURLsPopsAndDesc.items(),
                         key = lambda x: x[0].state.name)
     context = {
         "stateColor": stateColor, # TODO eventually have meaningful colors?
@@ -131,7 +131,7 @@ def _makeContactList(title, description, senatorList, public):
             title = title,
             description = description,
             public = public)
-    cl.senators = senatorList
+    cl.senators.set(senatorList)
     cl.save()
     return cl
 
@@ -155,6 +155,11 @@ def populateSenators(request):
     senText = '<br>'.join(sorted([s2t(s) for s in senators]))
 
     return debugWriteAnything("The list of senators: <br>" + senText)
+
+@user_passes_test(lambda u: u.is_superuser)
+def clearDataForNewCongress(request):
+    initialization.clearDataForNewCongress()
+    return populateSenators(request)
 
 @user_passes_test(lambda u: u.is_superuser)
 def updateCitiesAndStatesWithLatestData(request):
