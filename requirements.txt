@@ -3,7 +3,7 @@ certifi==2017.4.17
 chardet==3.0.4
 colour==0.1.4
 dj-database-url==0.5.0
-Django==3.0.2
+Django==3.0.3
 django-markdown-deux==1.0.5
 gunicorn==19.7.1
 idna==2.5
